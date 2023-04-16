@@ -1,17 +1,64 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:ML_Annotation_Tool.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:local="clr-namespace:ML_Annotation_Tool.Views"
+		xmlns:models="clr-namespace:ML_Annotation_Tool.Models;assembly=ML_Annotation_Tool"
+		xmlns:converters="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Markup"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ML_Annotation_Tool.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="ML_Annotation_Tool">
+	<Window.Resources>
+		<models:BitmapAssetValueConverter x:Key="variableImage"/>
+	</Window.Resources>
 
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+	<TabControl SelectedIndex="{Binding Path=selectedIndex}" TabStripPlacement="Left" VerticalAlignment="Top" 
+				Margin="10 100 10 10">
+		<TabItem Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Choose files">
+			<StackPanel VerticalAlignment="Center">
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<TextBlock FontSize="16"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center">
+					<TextBlock.Text>
+						<MultiBinding Converter="{x:Static models:ConcatenationConverter.Instance}">
+							<Binding Path="lineOne"/>
+							<Binding Path="lineTwo"/>
+							<Binding Path="lineThree"/>
+							<Binding Path="lineFour"/>
+						</MultiBinding>
+					</TextBlock.Text>
+				</TextBlock>
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+					<Button Content="Choose individual files"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Command="{Binding fileExplorer}"
+						Margin="6 100 6 6"></Button>
+
+					<Button Content="Choose a directory"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Command="{Binding fileExplorer}"
+						Margin="6 100 6 6"></Button>
+				</StackPanel>
+				
+			</StackPanel>
+		</TabItem>
+		<TabItem IsEnabled="{Binding secondPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Process files">
+			<Grid RowDefinitions="Auto,*,Auto" Margin="10"> 
+				<TextBlock Grid.Row="0" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Center"
+					Text="Please select the image you wish to begin with; if there is no specific image you wish to start with, the viewer will display images alphabetically."></TextBlock>
+				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Margin="6 30 6 6" MaxWidth="800">
+					<ListBox Items="{Binding fileNames}" SelectedItem="{Binding imageToShow}"/>
+				</ScrollViewer>
+				<Button Grid.Row="2" Command="{Binding nextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
+			</Grid>
+				
+		</TabItem>
+		<TabItem IsEnabled="True" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer">
+			<Image Source="{Binding ImageToShow}"/>
+		</TabItem>
+	</TabControl>
 
 </Window>
+
