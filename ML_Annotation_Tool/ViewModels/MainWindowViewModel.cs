@@ -16,11 +16,11 @@ namespace ML_Annotation_Tool.ViewModels
         public string FileExplorerButtonText => "Choose directory";
 
         private int _selectedIndex;
-        public int selectedIndex
+        public int selectedTabIndex
         {
             get { return _selectedIndex; }
             set { _selectedIndex = value;
-                OnPropertyChanged(nameof(selectedIndex));
+                OnPropertyChanged(nameof(selectedTabIndex));
             }
         }
 
@@ -94,15 +94,63 @@ namespace ML_Annotation_Tool.ViewModels
                 OnPropertyChanged(nameof(ImageToShow));
             }
         }
+
+        private int _imageIndex;
+        public int ImageIndex
+        {
+            get { return _imageIndex; }
+            set
+            {
+                _imageIndex = value;
+                ImageToShow = new Bitmap(fileNames[_imageIndex]);
+                OnPropertyChanged(nameof(ImageIndex));
+            }
+        }
+
+        private int _numImages;
+        public int NumImages
+        {
+            get { return _numImages; }
+            set
+            {
+                _numImages = value;
+                OnPropertyChanged(nameof(NumImages));
+            }
+        }
+
+        private int _currentFishPart;
+        public int CurrentFishPart
+        {
+            get => _currentFishPart;
+            set
+            {
+                _currentFishPart = value;
+                OnPropertyChanged(nameof(CurrentFishPart));
+            }
+        }
+
+        public ICommand showNextImage { get; }
+        public ICommand showPreviousImage { get; }
+        public ICommand clearImages { get; }
+        public ICommand MousePress { get; }
+        public ICommand ClearAnnotations { get; }
         public MainWindowViewModel()
         {   
             fileNames = new ObservableCollection<string>();
 
-            selectedIndex = 0;
-
+            selectedTabIndex = 0;
+            NumImages = 0;
             fileExplorer = new FileExplorerCommand(this);
             //ImageSelection = new ImageSelectionCommand(this);
             nextPage = new NextPageCommand(this);
+
+            showNextImage = new SwitchingImagesCommand(this, "D");
+            showPreviousImage = new SwitchingImagesCommand(this, "A");
+
+            clearImages = new ClearImagesCommand(this);
+
+            MousePress = new MousePressCommand(this);
+
         }
     }
 }

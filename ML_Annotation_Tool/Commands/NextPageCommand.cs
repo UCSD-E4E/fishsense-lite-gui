@@ -21,8 +21,8 @@ namespace ML_Annotation_Tool.Commands
 
         public async void Execute(object? parameter)
         {
-            source.selectedIndex += 1;
-            source.selectedIndex %= 3;
+            source.selectedTabIndex += 1;
+            source.selectedTabIndex %= 3;
             source.thirdPageEnabled = true;
         }
 

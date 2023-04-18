@@ -9,16 +9,13 @@
         x:Class="ML_Annotation_Tool.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="ML_Annotation_Tool">
-	<Window.Resources>
-		<models:BitmapAssetValueConverter x:Key="variableImage"/>
-	</Window.Resources>
-
-	<TabControl SelectedIndex="{Binding Path=selectedIndex}" TabStripPlacement="Left" VerticalAlignment="Top" 
+	
+	<TabControl SelectedIndex="{Binding Path=selectedTabIndex}" TabStripPlacement="Left" VerticalAlignment="Top" 
 				Margin="10 100 10 10">
 		<TabItem Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Choose files">
 			<StackPanel VerticalAlignment="Center">
 
-				<TextBlock FontSize="16"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center">
+				<TextBlock FontSize="18"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center">
 					<TextBlock.Text>
 						<MultiBinding Converter="{x:Static models:ConcatenationConverter.Instance}">
 							<Binding Path="lineOne"/>
@@ -28,20 +25,14 @@
 						</MultiBinding>
 					</TextBlock.Text>
 				</TextBlock>
-				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-					<Button Content="Choose individual files"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Command="{Binding fileExplorer}"
-						Margin="6 100 6 6"></Button>
 
-					<Button Content="Choose a directory"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Command="{Binding fileExplorer}"
-						Margin="6 100 6 6"></Button>
-				</StackPanel>
 				
+				<Button Content="Choose individual files"
+						FontSize="18"
+					HorizontalAlignment="Center"
+					VerticalAlignment="Center"
+					Command="{Binding fileExplorer}"
+					Margin="6 100 6 6"></Button>				
 			</StackPanel>
 		</TabItem>
 		<TabItem IsEnabled="{Binding secondPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Process files">
@@ -51,12 +42,37 @@
 				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Margin="6 30 6 6" MaxWidth="800">
 					<ListBox Items="{Binding fileNames}" SelectedItem="{Binding imageToShow}"/>
 				</ScrollViewer>
-				<Button Grid.Row="2" Command="{Binding nextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
+				<StackPanel Grid.Row="2">
+					<Button Command="{Binding clearImages}" Content="Delete all images" IsEnabled="True" HorizontalAlignment="Left"/>
+					<Button Command="{Binding nextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
+				</StackPanel>
 			</Grid>
-				
+
+
 		</TabItem>
-		<TabItem IsEnabled="True" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer">
-			<Image Source="{Binding ImageToShow}"/>
+		<TabItem IsEnabled="{Binding thirdPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer">
+			<Grid RowDefinitions="Auto,*">
+				<StackPanel Grid.Row="0" Orientation="Horizontal">
+					<Button Content="Show next image" Command="{Binding showNextImage}" HotKey="D"/>
+					<Button Content="Show previous image" Command="{Binding showPreviousImage}" HotKey="A"/>
+					<Button Content="Annotate Fish Head" IsVisible="False" HotKey="H"/>
+					<Button Content="Annotate Fish Tail" IsVisible="False" HotKey="T"/>
+					<Button Content="Annotate Fish Body" IsVisible="False" HotKey="B"/>
+					<Button Content="Clear Annotations" Command="{Binding ClearAnnotations}"/>
+				</StackPanel>
+				
+			
+				<Image Name="DisplayedImage" Grid.Row="1" Source="{Binding ImageToShow}"
+					   PointerPressed="OnImagePressed"/>
+
+				<Canvas Width="{Binding ElementName=DisplayedImage, Path=Width}" Background="Transparent"
+						Height="{Binding ElementName=DisplayedImage, Path=Height}" Grid.Row="1"
+						PointerPressed="OnCanvasPressed"
+						PointerReleased="OnCanvasReleased"
+						Name="AnnotationCanvas">
+					
+				</Canvas>
+			</Grid>
 		</TabItem>
 	</TabControl>
 

@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using ML_Annotation_Tool.Models;
 using ML_Annotation_Tool.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -27,20 +28,36 @@ namespace ML_Annotation_Tool.Commands
             openFileDialog.Filters.Add(new FileDialogFilter() { Name = "Images", Extensions = { "png", "jpeg", "tiff", "bmp", "gif" } });
             var result = await openFileDialog.ShowAsync(new Window());
 
+            bool imageAdded = true;
             if (result != null)
             {
                 for (int i = 0; i < result.Length; i++)
                 {
-                    source.fileNames.Add(result[i]);
-                    var w = new Window();
-                    w.Content = "|" + result[i] + "|";
-                    w.Show();
+                    if (result[i] != null)
+                    {
+                        source.fileNames.Add(result[i]);
+                        source.NumImages += 1;
+                        try
+                        {
+                            var k = new Bitmap(result[i]);
+                        } catch (Exception ex)
+                        {
+                            var w = new ErrorMessageBox("Attempted to add corrupted image named " + result[i]);
+                            source.fileNames.Clear();
+                            source.NumImages = 0;
+                            imageAdded = false;
+                            break;
+                        }
+                    } 
                 }
-                source.ImageToShow = new Bitmap(result[0]);
+                if (imageAdded)
+                {
+                    source.ImageToShow = new Bitmap(result[0]);
+                    source.selectedTabIndex += 1;
+                    source.selectedTabIndex %= 3;
+                    source.secondPageEnabled = true;
+                } 
             }
-            source.selectedIndex += 1;
-            source.selectedIndex %= 3;
-            source.secondPageEnabled= true;
         }
 
         private MainWindowViewModel source;
