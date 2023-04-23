@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
@@ -53,6 +54,11 @@ namespace ML_Annotation_Tool.Views
         private void OnCanvasPressed(object sender, PointerPressedEventArgs e)
         {
             startPoint = e.GetPosition((IVisual?)sender);
+        }
+
+        private void ClearAnnotations(object sender, RoutedEventArgs e)
+        {
+            AnnotationCanvas.Children.Clear();
         }
 
         Point endPoint;

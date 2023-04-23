@@ -38,6 +38,14 @@ namespace ML_Annotation_Tool.Commands
           // double pixel_height = data[6];
           //
           // //Bitmap baseImage = new Bitmap(source.fileNames[source.ImageIndex]);
+
+            if ((string)parameter == "PRESS")
+            {
+
+            } else if ((string)parameter == "RELEASE")
+            {
+
+            }
         }
 
         private MainWindowViewModel source;

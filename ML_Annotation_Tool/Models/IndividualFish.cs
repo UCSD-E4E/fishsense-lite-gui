@@ -13,6 +13,7 @@ namespace ML_Annotation_Tool.Models
         private List<List<double>> annotations;    
         public IndividualFish(string fileName)
         {
+            this.fileName = fileName;
             numAnnotations = 0;
         }
         public bool compareName(string nameToTest)

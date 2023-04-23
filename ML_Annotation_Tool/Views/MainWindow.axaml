@@ -53,12 +53,12 @@
 		<TabItem IsEnabled="{Binding thirdPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer">
 			<Grid RowDefinitions="Auto,*">
 				<StackPanel Grid.Row="0" Orientation="Horizontal">
-					<Button Content="Show next image" Command="{Binding showNextImage}" HotKey="D"/>
+					<Button Content="Show next image" Margin="100 0 0 0" Command="{Binding showNextImage}" HotKey="D"/>
 					<Button Content="Show previous image" Command="{Binding showPreviousImage}" HotKey="A"/>
 					<Button Content="Annotate Fish Head" IsVisible="False" HotKey="H"/>
 					<Button Content="Annotate Fish Tail" IsVisible="False" HotKey="T"/>
 					<Button Content="Annotate Fish Body" IsVisible="False" HotKey="B"/>
-					<Button Content="Clear Annotations" Command="{Binding ClearAnnotations}"/>
+					<Button Content="Clear Annotations" Click="ClearAnnotations" HotKey="C" />
 				</StackPanel>
 				
 			
@@ -69,9 +69,7 @@
 						Height="{Binding ElementName=DisplayedImage, Path=Height}" Grid.Row="1"
 						PointerPressed="OnCanvasPressed"
 						PointerReleased="OnCanvasReleased"
-						Name="AnnotationCanvas">
-					
-				</Canvas>
+						Name="AnnotationCanvas"/>
 			</Grid>
 		</TabItem>
 	</TabControl>
