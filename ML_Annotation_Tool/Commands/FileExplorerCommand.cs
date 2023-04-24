@@ -5,17 +5,17 @@ using ML_Annotation_Tool.Models;
 using ML_Annotation_Tool.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ML_Annotation_Tool.Commands
 {
     public class FileExplorerCommand : ICommand
     {
-        public event EventHandler? CanExecuteChanged;
-
         public bool CanExecute(object? parameter)
         {
             return true;
@@ -23,44 +23,47 @@ namespace ML_Annotation_Tool.Commands
 
         public async void Execute(object? parameter)
         {
-            var openFileDialog = new OpenFileDialog();
-            openFileDialog.AllowMultiple = true; // for now, force them to choose all files in a directory rather than only
-            openFileDialog.Filters.Add(new FileDialogFilter() { Name = "Images", Extensions = { "png", "jpeg", "tiff", "bmp", "gif" } });
-            var result = await openFileDialog.ShowAsync(new Window());
+            var openFolderDialog = new OpenFolderDialog();
+            var result = await openFolderDialog.ShowAsync(new Window());
 
-            bool imageAdded = true;
             if (result != null)
             {
-                for (int i = 0; i < result.Length; i++)
+                List<string> paths = new List<string>(Directory.GetFiles(result));
+                // Should probably double check if .webp is supported by Avalonia
+                List<string> AcceptableExtensions = new List<string> { ".png", ".jpeg", ".jpg", ".bmp", ".gif", ".webp"};
+                string badExts = "";
+                foreach ( string path in paths )
                 {
-                    if (result[i] != null)
+                    if ( AcceptableExtensions.Contains(Path.GetExtension(path)) )
                     {
-                        source.fileNames.Add(result[i]);
-                        source.NumImages += 1;
                         try
                         {
-                            var k = new Bitmap(result[i]);
-                        } catch (Exception ex)
+                            var first_image = new Bitmap(path);
+                            source.fileNames.Add(path);
+                            source.NumImages += 1;
+                        }
+                        catch (Exception ex )
                         {
-                            var w = new ErrorMessageBox("Attempted to add corrupted image named " + result[i]);
-                            source.fileNames.Clear();
-                            source.NumImages = 0;
-                            imageAdded = false;
-                            break;
+                            var w = new ErrorMessageBox("Attempted to add a corrupted file named " + path);
                         }
                     } 
                 }
-                if (imageAdded)
+                var k = new ErrorMessageBox(badExts);
+
+                if (source.fileNames.Count > 0)
                 {
-                    source.ImageToShow = new Bitmap(result[0]);
+                    source.ImageToShow = new Bitmap(source.fileNames[0]);
                     source.selectedTabIndex += 1;
                     source.selectedTabIndex %= 3;
                     source.secondPageEnabled = true;
-                } 
+                }
             }
         }
 
         private MainWindowViewModel source;
+
+        public event EventHandler? CanExecuteChanged;
+
         public FileExplorerCommand(MainWindowViewModel source)
         {
             this.source = source;

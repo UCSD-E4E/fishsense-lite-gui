@@ -1,10 +1,6 @@
-using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using ML_Annotation_Tool.Commands;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Text;
 using System.Windows.Input;
 
@@ -12,7 +8,6 @@ namespace ML_Annotation_Tool.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public string Greeting => "Please choose the directory that contains the images";
         public string FileExplorerButtonText => "Choose directory";
 
         private int _selectedIndex;
@@ -24,16 +19,14 @@ namespace ML_Annotation_Tool.ViewModels
             }
         }
 
-        private readonly string _lineOne = "This app is designed to allow you to annotate image features and annotate them in a YOLO format. Press";
-        private readonly string _lineTwo = "the button below to input the directory that contains the files which you want to display. Later, you";
-        private readonly string _lineThree = "will have an option to choose where you wish to start viewing the files, and which files to display";
-        private readonly string _lineFour = "from the directory itself.";
+        private readonly string _partOne = "This app is designed to allow you to annotate image features" +
+            " and annotate them in a YOLO format. ";
+        private readonly string _partTwo = "Press the button below to input the directory that contains" +
+            " the files which you want to display. ";
+        private readonly string _partThree = "Later, you will have an option to choose where you wish to" +
+            " start viewing the files, and which files to display from the directory itself.";
 
-        public string lineOne => _lineOne;
-        public string lineTwo => _lineTwo;
-        public string lineThree => _lineThree;
-        public string lineFour => _lineFour;
-
+        public StringBuilder description { get; set; }
         public ObservableCollection<string> fileNames { get; set; }
 
         public ICommand fileExplorer { get; }
@@ -135,20 +128,25 @@ namespace ML_Annotation_Tool.ViewModels
         public ICommand MousePress { get; }
         public ICommand ClearAnnotations { get; }
         public MainWindowViewModel()
-        {   
+        {
+            // Create Description String.
+            description = new StringBuilder();
+            description.Append(_partOne);
+            description.Append(_partTwo);
+            description.Append(_partThree);
+
             fileNames = new ObservableCollection<string>();
 
+            // Create indexes.
             selectedTabIndex = 0;
             NumImages = 0;
-            fileExplorer = new FileExplorerCommand(this);
-            //ImageSelection = new ImageSelectionCommand(this);
-            nextPage = new NextPageCommand(this);
 
+            // Initialize commands.
+            fileExplorer = new FileExplorerCommand(this);
+            nextPage = new NextPageCommand(this);
             showNextImage = new SwitchingImagesCommand(this, "D");
             showPreviousImage = new SwitchingImagesCommand(this, "A");
-
             clearImages = new ClearImagesCommand(this);
-
             MousePress = new MousePressCommand(this);
 
         }

@@ -1,14 +1,5 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Media.Imaging;
-using ML_Annotation_Tool.ViewModels;
+﻿using ML_Annotation_Tool.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace ML_Annotation_Tool.Commands

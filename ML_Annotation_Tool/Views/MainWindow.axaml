@@ -10,23 +10,13 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="ML_Annotation_Tool">
 	
-	<TabControl SelectedIndex="{Binding Path=selectedTabIndex}" TabStripPlacement="Left" VerticalAlignment="Top" 
-				Margin="10 100 10 10">
+	<TabControl SelectedIndex="{Binding Path=selectedTabIndex}" TabStripPlacement="Top" VerticalAlignment="Top" 
+				Margin="10 10 10 10">
 		<TabItem Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Choose files">
 			<StackPanel VerticalAlignment="Center">
 
-				<TextBlock FontSize="18"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center">
-					<TextBlock.Text>
-						<MultiBinding Converter="{x:Static models:ConcatenationConverter.Instance}">
-							<Binding Path="lineOne"/>
-							<Binding Path="lineTwo"/>
-							<Binding Path="lineThree"/>
-							<Binding Path="lineFour"/>
-						</MultiBinding>
-					</TextBlock.Text>
+				<TextBlock FontSize="18"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center" Text="{Binding description}">
 				</TextBlock>
-
-				
 				<Button Content="Choose individual files"
 						FontSize="18"
 					HorizontalAlignment="Center"
