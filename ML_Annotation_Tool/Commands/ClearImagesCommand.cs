@@ -20,9 +20,7 @@ namespace ML_Annotation_Tool.Commands
         public void Execute(object? parameter)
         {
             source.selectedTabIndex = 0;
-            source.ImageIndex = 0;
-            source.NumImages = 0;
-            source.fileNames.Clear();
+            source.accessor.ClearFileNames();
 
             source.secondPageEnabled = false;
             source.thirdPageEnabled = false;

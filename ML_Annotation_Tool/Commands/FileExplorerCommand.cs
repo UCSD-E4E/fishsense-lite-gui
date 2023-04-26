@@ -25,7 +25,7 @@ namespace ML_Annotation_Tool.Commands
         {
             var openFolderDialog = new OpenFolderDialog();
             var result = await openFolderDialog.ShowAsync(new Window());
-
+            Bitmap testImage;
             if (result != null)
             {
                 List<string> paths = new List<string>(Directory.GetFiles(result));
@@ -38,9 +38,8 @@ namespace ML_Annotation_Tool.Commands
                     {
                         try
                         {
-                            var first_image = new Bitmap(path);
-                            source.fileNames.Add(path);
-                            source.NumImages += 1;
+                            testImage = new Bitmap(path);
+                            source.AddFileName(path);
                         }
                         catch (Exception ex )
                         {
@@ -48,14 +47,15 @@ namespace ML_Annotation_Tool.Commands
                         }
                     } 
                 }
-                var k = new ErrorMessageBox(badExts);
 
-                if (source.fileNames.Count > 0)
+                if (source.ImageCount() > 0)
                 {
-                    source.ImageToShow = new Bitmap(source.fileNames[0]);
                     source.selectedTabIndex += 1;
                     source.selectedTabIndex %= 3;
                     source.secondPageEnabled = true;
+                    source.FilesChosen();
+                    // Set Connection.
+                    source.InitializeConnection(result);
                 }
             }
         }

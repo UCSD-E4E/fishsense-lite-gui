@@ -1,4 +1,5 @@
-﻿using ML_Annotation_Tool.ViewModels;
+﻿using DynamicData;
+using ML_Annotation_Tool.ViewModels;
 using ML_Annotation_Tool.Views;
 using System;
 using System.Collections.Generic;
@@ -24,17 +25,10 @@ namespace ML_Annotation_Tool.Commands
             {
                 if (keyPressed == "D")
                 {
-                    source.ImageIndex = (source.ImageIndex + 1) % source.NumImages;
+                    source.accessor.NextImage();
                 } else if (keyPressed == "A")
                 {
-                    if (source.ImageIndex == 0)
-                    {
-                        source.ImageIndex = source.NumImages - 1;
-                    } else
-                    {
-                        source.ImageIndex = (source.ImageIndex - 1) % source.NumImages;
-                    }
-                    
+                    source.accessor.PreviousImage();                   
                 }
             }
         }

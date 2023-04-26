@@ -1,7 +1,16 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using ML_Annotation_Tool.Commands;
+using ML_Annotation_Tool.Data;
+using ML_Annotation_Tool.Models;
+using System;
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace ML_Annotation_Tool.ViewModels
@@ -10,11 +19,24 @@ namespace ML_Annotation_Tool.ViewModels
     {
         public string FileExplorerButtonText => "Choose directory";
 
-        private int _selectedIndex;
+        private int _selectedTabIndex;
+        public ObservableCollection<string> fileNames
+        {
+            get => accessor.FileNames;
+        }
+        public ObservableCollection<Rectangle> annotations
+        {
+            get => accessor.CurrentAnnotations();
+            set
+            {
+                accessor.annotations = value;
+                OnPropertyChanged(nameof(annotations));
+            }
+        }
         public int selectedTabIndex
         {
-            get { return _selectedIndex; }
-            set { _selectedIndex = value;
+            get { return _selectedTabIndex; }
+            set { _selectedTabIndex = value;
                 OnPropertyChanged(nameof(selectedTabIndex));
             }
         }
@@ -27,9 +49,6 @@ namespace ML_Annotation_Tool.ViewModels
             " start viewing the files, and which files to display from the directory itself.";
 
         public StringBuilder description { get; set; }
-        public ObservableCollection<string> fileNames { get; set; }
-
-        public ICommand fileExplorer { get; }
 
         private bool _secondPageEnabled = false;
         public bool secondPageEnabled
@@ -71,62 +90,27 @@ namespace ML_Annotation_Tool.ViewModels
                 _displaySelectedImages = value;
             }
         }
-        public ICommand ImageSelection;
-        public ICommand nextPage { get; }
-
-        private Bitmap _imageToShow;
-        public Bitmap ImageToShow 
-        {
-            get 
-            {
-                return _imageToShow; 
-            }
-            set 
-            { 
-                _imageToShow = value;
-                OnPropertyChanged(nameof(ImageToShow));
-            }
-        }
-
-        private int _imageIndex;
+        
+        public Bitmap ImageToShow => 
+            accessor.CurrentBitmap();
         public int ImageIndex
         {
-            get { return _imageIndex; }
+            get { return accessor.ImageIndex; }
             set
             {
-                _imageIndex = value;
-                ImageToShow = new Bitmap(fileNames[_imageIndex]);
+                OnPropertyChanged(nameof(ImageToShow));
                 OnPropertyChanged(nameof(ImageIndex));
             }
         }
-
-        private int _numImages;
-        public int NumImages
-        {
-            get { return _numImages; }
-            set
-            {
-                _numImages = value;
-                OnPropertyChanged(nameof(NumImages));
-            }
-        }
-
-        private int _currentFishPart;
-        public int CurrentFishPart
-        {
-            get => _currentFishPart;
-            set
-            {
-                _currentFishPart = value;
-                OnPropertyChanged(nameof(CurrentFishPart));
-            }
-        }
-
+        public ICommand fileExplorer { get; }
+        public ICommand nextPage { get; }
         public ICommand showNextImage { get; }
         public ICommand showPreviousImage { get; }
         public ICommand clearImages { get; }
-        public ICommand MousePress { get; }
-        public ICommand ClearAnnotations { get; }
+        public ICommand CanvasPointerPressed { get; }
+
+        public DatabaseAccessor accessor;
+
         public MainWindowViewModel()
         {
             // Create Description String.
@@ -135,11 +119,8 @@ namespace ML_Annotation_Tool.ViewModels
             description.Append(_partTwo);
             description.Append(_partThree);
 
-            fileNames = new ObservableCollection<string>();
-
             // Create indexes.
             selectedTabIndex = 0;
-            NumImages = 0;
 
             // Initialize commands.
             fileExplorer = new FileExplorerCommand(this);
@@ -147,8 +128,65 @@ namespace ML_Annotation_Tool.ViewModels
             showNextImage = new SwitchingImagesCommand(this, "D");
             showPreviousImage = new SwitchingImagesCommand(this, "A");
             clearImages = new ClearImagesCommand(this);
-            MousePress = new MousePressCommand(this);
+            CanvasPointerPressed = new CanvasPointerPressedCommand(this);
+
+            // Model layer.
+            accessor = new DatabaseAccessor(this);
+
+            // Dummy annotations.
+            //Rectangle rect1 = new Rectangle()
+            //{
+            //    Width = 100,
+            //    Height = 200,
+            //    Stroke = Brushes.Red,
+            //    StrokeThickness = 3,
+            //    Fill = Brushes.Transparent,
+            //};
+            //
+            //Rectangle rect2 = new Rectangle()
+            //{
+            //    Width = 300,
+            //    Height = 200,
+            //    Stroke = Brushes.Red,
+            //    StrokeThickness = 3,
+            //    Fill = Brushes.Transparent,
+            //};
+            //
+            //Rectangle rect3 = new Rectangle()
+            //{
+            //    Width = 100,
+            //    Height = 500,
+            //    Stroke = Brushes.Red,
+            //    StrokeThickness = 3,
+            //    Fill = Brushes.Transparent,
+            //};
+            annotations = new ObservableCollection<Rectangle>();
+        }
+
+        public void InitializeConnection(string path)
+        {
+            accessor.SetDatabaseConnection(path);
+        }
+
+        public void AddAnnotation(Point topLeft, Point bottomRight, Canvas canvas)
+        {
+            Rectangle rect = accessor.MakeAnnotation("key", topLeft, bottomRight, canvas);
+            annotations.Add(rect);
+            Canvas.SetLeft(rect, Math.Min(topLeft.X, bottomRight.X));
+            Canvas.SetTop(rect, Math.Min(topLeft.Y, bottomRight.Y));
 
         }
+        public void AddFileName(string path)
+        {
+            accessor.AddPath(path);
+        }
+
+        public void UpdateImageIndex(int newIndex)
+        {
+
+        }
+        public int ImageCount() { return accessor.Images.Count; }
+
+        public void FilesChosen() { accessor.filesChosen = true; }
     }
 }
