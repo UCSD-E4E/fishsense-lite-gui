@@ -43,15 +43,18 @@ namespace ML_Annotation_Tool.Views
                     var visual = (IVisual)myImage;
                     endPoint = e.GetPosition(myImage);
                     var transformedBounds = DisplayedImage.TransformedBounds.Value;
+                    int height = (int)DisplayedImage.Height;
                     int width = (int)DisplayedImage.Width;
-                    var k = new ErrorMessageBox("Transformed bounds: " + transformedBounds.ToString() + " \n X: " + endPoint.X.ToString() + " Y: " + endPoint.Y.ToString());
-                    //if (endPoint.X >= 0 && endPoint.Y >= 0 && endPoint.X <= width && endPoint.Y <= height)
-                    //{
-                    //    vm.AddAnnotation(startPoint, endPoint, width, height);
-                    //} else
-                    //{
-                    //    var k = new ErrorMessageBox("Please draw the box on the image itself. Releasing the mouse off of the box will not draw an image.");
-                    //}
+                    //int height = (int)transformedBounds.Bounds.Height;
+                    //int width = (int)transformedBounds.Bounds.Height;
+                    var h = new ErrorMessageBox("Width: " + width + "\nHeight: " + height + " \n X: " + endPoint.X.ToString() + " Y: " + endPoint.Y.ToString());
+                    if (endPoint.X >= 0 && endPoint.Y >= 0 && endPoint.X <= width && endPoint.Y <= height)
+                    {
+                        vm.AddAnnotation(startPoint, endPoint, width, height);
+                    } else
+                    {
+                        var k = new ErrorMessageBox("Please draw the box on the image itself. Releasing the mouse off of the box will not draw an image.");
+                    }
                 }
             }
         }

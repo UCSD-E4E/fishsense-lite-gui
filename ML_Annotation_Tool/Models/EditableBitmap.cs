@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,8 +43,9 @@ namespace ML_Annotation_Tool.Models
             } 
             else if (AnnotationDescriptor == 2) 
             { 
-                color = Color.Blue; 
+                color = Color.Blue;
             }
+            //var k = new ErrorMessageBox("Width: " + width + "\nHeight: " + height + " \n X: " + firstPointX.ToString() + " Y: " + firstPointY.ToString() + " \n X: " + secondPointX.ToString() + " Y: " + secondPointY.ToString());
 
             for (int x = (int)((double)firstPointX / width * edited.Width); x < (int)((double)secondPointX / width * edited.Width); x++)
             {

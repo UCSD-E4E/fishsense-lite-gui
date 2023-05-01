@@ -11,7 +11,7 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="ML_Annotation_Tool" Name="Window">
 	<Window.Resources>
-		<models:SubtractionConverter x:Key="subConv"/>
+		<models:HeightConverter x:Key="heightConv"/>
 	</Window.Resources>
 
 	<TabControl SelectedIndex="{Binding Path=SelectedTabIndex}" TabStripPlacement="Top" VerticalAlignment="Top" 
@@ -71,7 +71,7 @@
 							Command="{Binding ClearImages}"/>
 
 					<Image x:Name="DisplayedImage" Source="{Binding ImageToShow}"
-							PointerPressed="OnImagePointerPressed"  
+							PointerPressed="OnImagePointerPressed" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}"
 						    PointerReleased="OnImagePointerReleased">
 					</Image>
 					

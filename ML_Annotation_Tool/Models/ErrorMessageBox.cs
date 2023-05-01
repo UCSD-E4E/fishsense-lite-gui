@@ -32,6 +32,7 @@ namespace ML_Annotation_Tool.Models
             CloseCommand Close = new CloseCommand(ErrorWindow);
             CloseButton.Command = Close;
 
+
             StackPanel TextButtonStackPanel = new StackPanel();
             TextButtonStackPanel.Children.Add(txt);
             TextButtonStackPanel.Children.Add(CloseButton);
@@ -39,6 +40,7 @@ namespace ML_Annotation_Tool.Models
             ErrorWindow.Content = TextButtonStackPanel;
             ErrorWindow.Width = 426;
             ErrorWindow.SizeToContent = SizeToContent.Height;
+            ErrorWindow.Focus();
             ErrorWindow.Show();
         }
 

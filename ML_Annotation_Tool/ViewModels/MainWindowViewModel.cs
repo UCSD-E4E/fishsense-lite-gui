@@ -42,34 +42,34 @@ namespace ML_Annotation_Tool.ViewModels
             {
                 _imageToShow = value;
                 OnPropertyChanged(nameof(ImageToShow));
-                //ImageHeight = accessor.getHeight();
-                //ImageWidth = accessor.getWidth();
+                ImageHeight = accessor.getHeight();
+                ImageWidth = accessor.getWidth();
             }
         }
 
         // Another method to display images properly in xaml. Height and Width is necessary to add annotations using the values of 
         // the exact pixels of the image.
 
-        //private int _imageHeight;
-        //public int ImageHeight
-        //{
-        //    get => _imageHeight;
-        //    set
-        //    {
-        //        _imageHeight = value;
-        //        OnPropertyChanged(nameof(ImageHeight));
-        //    }
-        //}
-        //private int _imageWidth;
-        //public int ImageWidth
-        //{
-        //    get => _imageWidth;
-        //    set
-        //    {
-        //        _imageWidth = value;
-        //        OnPropertyChanged(nameof(ImageWidth));
-        //    }
-        //}
+        private int _imageHeight;
+        public int ImageHeight
+        {
+            get => _imageHeight;
+            set
+            {
+                _imageHeight = value;
+                OnPropertyChanged(nameof(ImageHeight));
+            }
+        }
+        private int _imageWidth;
+        public int ImageWidth
+        {
+            get => _imageWidth;
+            set
+            {
+                _imageWidth = value;
+                OnPropertyChanged(nameof(ImageWidth));
+            }
+        }
 
         private readonly string _sentenceOne = "This app is designed to allow you to annotate image features" +
             " and annotate them in a YOLO format. ";
