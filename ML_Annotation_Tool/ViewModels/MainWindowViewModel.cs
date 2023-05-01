@@ -1,16 +1,7 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Input;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using ML_Annotation_Tool.Commands;
-using ML_Annotation_Tool.Data;
 using ML_Annotation_Tool.Models;
-using System;
 using System.Collections.ObjectModel;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace ML_Annotation_Tool.ViewModels
@@ -19,70 +10,114 @@ namespace ML_Annotation_Tool.ViewModels
     {
         public string FileExplorerButtonText => "Choose directory";
 
+        // Index for the tab of the UI that is displayed. 
         private int _selectedTabIndex;
-        public ObservableCollection<string> fileNames
-        {
-            get => accessor.FileNames;
-        }
-        public ObservableCollection<Rectangle> annotations
-        {
-            get => accessor.CurrentAnnotations();
-            set
-            {
-                accessor.annotations = value;
-                OnPropertyChanged(nameof(annotations));
-            }
-        }
-        public int selectedTabIndex
+        public int SelectedTabIndex
         {
             get { return _selectedTabIndex; }
-            set { _selectedTabIndex = value;
-                OnPropertyChanged(nameof(selectedTabIndex));
+            set
+            {
+                _selectedTabIndex = value;
+                OnPropertyChanged(nameof(SelectedTabIndex));
             }
         }
 
-        private readonly string _partOne = "This app is designed to allow you to annotate image features" +
+        private ObservableCollection<string> _fileNames;
+        public ObservableCollection<string> FileNames
+        {
+            get => _fileNames;
+            set
+            {
+                _fileNames = value;
+                OnPropertyChanged(nameof(FileNames));
+            }
+        }
+
+        // Contains Avalonia.Media.Imaging.Bitmap that will be displayed in UI
+        private Avalonia.Media.Imaging.Bitmap _imageToShow;
+        public Avalonia.Media.Imaging.Bitmap ImageToShow
+        {
+            get => _imageToShow;
+            set
+            {
+                _imageToShow = value;
+                OnPropertyChanged(nameof(ImageToShow));
+                //ImageHeight = accessor.getHeight();
+                //ImageWidth = accessor.getWidth();
+            }
+        }
+
+        // Another method to display images properly in xaml. Height and Width is necessary to add annotations using the values of 
+        // the exact pixels of the image.
+
+        //private int _imageHeight;
+        //public int ImageHeight
+        //{
+        //    get => _imageHeight;
+        //    set
+        //    {
+        //        _imageHeight = value;
+        //        OnPropertyChanged(nameof(ImageHeight));
+        //    }
+        //}
+        //private int _imageWidth;
+        //public int ImageWidth
+        //{
+        //    get => _imageWidth;
+        //    set
+        //    {
+        //        _imageWidth = value;
+        //        OnPropertyChanged(nameof(ImageWidth));
+        //    }
+        //}
+
+        private readonly string _sentenceOne = "This app is designed to allow you to annotate image features" +
             " and annotate them in a YOLO format. ";
-        private readonly string _partTwo = "Press the button below to input the directory that contains" +
+        private readonly string _sentenceTwo = "Press the button below to input the directory that contains" +
             " the files which you want to display. ";
-        private readonly string _partThree = "Later, you will have an option to choose where you wish to" +
+        private readonly string _sentenceThree = "Later, you will have an option to choose where you wish to" +
             " start viewing the files, and which files to display from the directory itself.";
 
-        public StringBuilder description { get; set; }
+        // C# documentation recommended using StringBuilder to represent larger strings, and this is initialized in the 
+        // constructor. This data is to add a small description in the beginning of the app.
+        public StringBuilder Description { get; set; }
+
+        // Booleans that control the use of certain buttons and whether or not users can view the 2nd or 3rd tabs in the app.
 
         private bool _secondPageEnabled = false;
-        public bool secondPageEnabled
+        public bool SecondPageEnabled
         {
             get { return _secondPageEnabled; }
-            set { 
-                 _secondPageEnabled = value; 
-                OnPropertyChanged(nameof(secondPageEnabled));
-            }  
+            set
+            {
+                _secondPageEnabled = value;
+                OnPropertyChanged(nameof(SecondPageEnabled));
+            }
         }
 
         private bool _thirdPageEnabled = false;
-        public bool thirdPageEnabled
+        public bool ThirdPageEnabled
         {
             get { return _thirdPageEnabled; }
             set
             {
                 _thirdPageEnabled = value;
-                OnPropertyChanged(nameof(thirdPageEnabled));
+                OnPropertyChanged(nameof(ThirdPageEnabled));
             }
         }
 
         private bool _displaySelectedImages = true;
-        public bool displaySelectedImages
+        public bool DisplaySelectedImages
         {
             get { return _displaySelectedImages; }
             set
             {
                 _displaySelectedImages = value;
-                OnPropertyChanged(nameof(displaySelectedImages));
-                OnPropertyChanged(nameof(removingSelectedImages));
+                OnPropertyChanged(nameof(DisplaySelectedImages));
+                OnPropertyChanged(nameof(RemovingSelectedImages));
             }
         }
-        public bool removingSelectedImages
+        public bool RemovingSelectedImages
         {
             get { return !_displaySelectedImages; }
             set
@@ -90,103 +125,78 @@ namespace ML_Annotation_Tool.ViewModels
                 _displaySelectedImages = value;
             }
         }
-        
-        public Bitmap ImageToShow => 
-            accessor.CurrentBitmap();
-        public int ImageIndex
+
+        // Descriptor that is updated by the SwitchAnntationDescriptor.cs class.
+        private int _annotationDescriptor;
+        public int AnnotationDescriptor
         {
-            get { return accessor.ImageIndex; }
+            get { return _annotationDescriptor; }
             set
             {
-                OnPropertyChanged(nameof(ImageToShow));
-                OnPropertyChanged(nameof(ImageIndex));
+                _annotationDescriptor= value;
+                OnPropertyChanged(nameof(AnnotationDescriptor));
             }
         }
-        public ICommand fileExplorer { get; }
-        public ICommand nextPage { get; }
-        public ICommand showNextImage { get; }
-        public ICommand showPreviousImage { get; }
-        public ICommand clearImages { get; }
-        public ICommand CanvasPointerPressed { get; }
+        // Each of these commands are binded to buttons and events in the UI and forms a way to pass data between the layers and the UI.
+        public ICommand FileExplorer { get; }
+        public ICommand NextPage { get; }
+        public ICommand SwitchImage { get; }
+        public ICommand ClearImages { get; }
 
-        public DatabaseAccessor accessor;
+        public ICommand HeadAnnotationDescriptor { get; }
+        public ICommand TailAnnotationDescriptor { get; }
+        public ICommand BodyAnnotationDescriptor { get; }
 
+        public DB_Accessor accessor;
         public MainWindowViewModel()
         {
             // Create Description String.
-            description = new StringBuilder();
-            description.Append(_partOne);
-            description.Append(_partTwo);
-            description.Append(_partThree);
+            Description = new StringBuilder();
+            Description.Append(_sentenceOne);
+            Description.Append(_sentenceTwo);
+            Description.Append(_sentenceThree);
 
+            // Initialize the filenames collection.
+            _fileNames = new ObservableCollection<string>();
             // Create indexes.
-            selectedTabIndex = 0;
+            SelectedTabIndex = 0;
 
             // Initialize commands.
-            fileExplorer = new FileExplorerCommand(this);
-            nextPage = new NextPageCommand(this);
-            showNextImage = new SwitchingImagesCommand(this, "D");
-            showPreviousImage = new SwitchingImagesCommand(this, "A");
-            clearImages = new ClearImagesCommand(this);
-            CanvasPointerPressed = new CanvasPointerPressedCommand(this);
-
-            // Model layer.
-            accessor = new DatabaseAccessor(this);
-
-            // Dummy annotations.
-            //Rectangle rect1 = new Rectangle()
-            //{
-            //    Width = 100,
-            //    Height = 200,
-            //    Stroke = Brushes.Red,
-            //    StrokeThickness = 3,
-            //    Fill = Brushes.Transparent,
-            //};
-            //
-            //Rectangle rect2 = new Rectangle()
-            //{
-            //    Width = 300,
-            //    Height = 200,
-            //    Stroke = Brushes.Red,
-            //    StrokeThickness = 3,
-            //    Fill = Brushes.Transparent,
-            //};
-            //
-            //Rectangle rect3 = new Rectangle()
-            //{
-            //    Width = 100,
-            //    Height = 500,
-            //    Stroke = Brushes.Red,
-            //    StrokeThickness = 3,
-            //    Fill = Brushes.Transparent,
-            //};
-            annotations = new ObservableCollection<Rectangle>();
+            FileExplorer = new FileExplorerCommand(this);
+            NextPage = new MoveToThirdPageCommand(this);
+            SwitchImage = new SwitchingImagesCommand(this);
+            ClearImages = new ClearImagesCommand(this);
+            HeadAnnotationDescriptor = new SwitchAnnotationDescriptorCommand(this, "H");
+            TailAnnotationDescriptor = new SwitchAnnotationDescriptorCommand(this, "T");
+            BodyAnnotationDescriptor = new SwitchAnnotationDescriptorCommand(this, "B");
         }
 
         public void InitializeConnection(string path)
         {
-            accessor.SetDatabaseConnection(path);
+            // Model layer.
+            accessor = new DB_Accessor(path, this);
         }
-
-        public void AddAnnotation(Point topLeft, Point bottomRight, Canvas canvas)
+        // This method is called from the code behind, and this method just routes the data from the code behind to the model.
+        public void AddAnnotation(Avalonia.Point startPoint, Avalonia.Point endPoint, int width, int height)
         {
-            Rectangle rect = accessor.MakeAnnotation("key", topLeft, bottomRight, canvas);
-            annotations.Add(rect);
-            Canvas.SetLeft(rect, Math.Min(topLeft.X, bottomRight.X));
-            Canvas.SetTop(rect, Math.Min(topLeft.Y, bottomRight.Y));
-
+            accessor.AddAnnotation(AnnotationDescriptor, startPoint, endPoint, width, height);
         }
-        public void AddFileName(string path)
+        public void AddFileName(string imagePath)
         {
-            accessor.AddPath(path);
+            FileNames.Add(imagePath);
+            accessor.AddImage(imagePath);
         }
-
-        public void UpdateImageIndex(int newIndex)
+        internal void ImageToShowEdited(Avalonia.Media.Imaging.Bitmap newImage)
         {
-
+            ImageToShow = newImage; 
         }
-        public int ImageCount() { return accessor.Images.Count; }
 
-        public void FilesChosen() { accessor.filesChosen = true; }
+        internal void InitializeImage()
+        {
+            // Currently using a "" just because no initial image feature has been created, but this will 
+            // will be added in the future. "" doesn't share any of the same image path names and so it will
+            // choose the first image for its 
+            accessor.ChooseFirstImage("");
+        }
     }
 }

@@ -8,6 +8,11 @@ using System.Windows.Input;
 
 namespace ML_Annotation_Tool.Commands
 {
+    /* Command to clear images. Linked to XAML button on page 2.
+    *  1) Clears images from ObservableCollection.
+    *  2) Disables pages 2 and 3.
+    *  3) Allows user to rechoose directory and add new directory.
+    */
     public class ClearImagesCommand : ICommand
     {
         public event EventHandler? CanExecuteChanged;
@@ -16,14 +21,13 @@ namespace ML_Annotation_Tool.Commands
         {
             return true;
         }
-
         public void Execute(object? parameter)
         {
-            source.selectedTabIndex = 0;
-            source.accessor.ClearFileNames();
+            source.SelectedTabIndex = 0;
+            source.accessor.ClearImages();
 
-            source.secondPageEnabled = false;
-            source.thirdPageEnabled = false;
+            source.SecondPageEnabled = false;
+            source.ThirdPageEnabled = false;
         }
 
         MainWindowViewModel source;

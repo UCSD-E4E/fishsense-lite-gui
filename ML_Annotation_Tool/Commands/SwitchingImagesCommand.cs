@@ -10,6 +10,14 @@ using System.Windows.Input;
 
 namespace ML_Annotation_Tool.Commands
 {
+    /* This command binds to 2 hotkeys on the third page. The user can move to the 
+     * next image using 'A' and 'D' to move to the previous image and next image respectively
+     * The command obviously cycles, but this behavior is taken care of at the DB_Accessor class
+     * This command simply notifies the model that it should move to the next class rather than 
+     * containing any real logic.
+     * 
+     * Both the A and D hotkeys link to the same command.
+     */
     public class SwitchingImagesCommand : ICommand
     {
         public event EventHandler? CanExecuteChanged;
@@ -19,25 +27,24 @@ namespace ML_Annotation_Tool.Commands
             return true;
         }
 
-        public void Execute(object? parameter)
+        // keyPressed is a CommandParameter supplied from the XAMl
+        public void Execute(object? keyPressed)
         {
-            if (keyPressed != null)
+            if (keyPressed.ToString() != null)
             {
-                if (keyPressed == "D")
+                if (keyPressed.ToString() == "D")
                 {
                     source.accessor.NextImage();
-                } else if (keyPressed == "A")
+                } else if (keyPressed.ToString() == "A")
                 {
                     source.accessor.PreviousImage();                   
                 }
             }
         }
 
-        private string keyPressed = null;
         private MainWindowViewModel source;
-        public SwitchingImagesCommand(MainWindowViewModel source, string keyPressed)
+        public SwitchingImagesCommand(MainWindowViewModel source)
         {
-            this.keyPressed = keyPressed;
             this.source = source;
         }
     }

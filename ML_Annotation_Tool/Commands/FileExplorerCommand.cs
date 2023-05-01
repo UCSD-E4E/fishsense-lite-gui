@@ -14,6 +14,11 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace ML_Annotation_Tool.Commands
 {
+    /* Command to open file explorer to choose directory that contains images.
+     * Checks to make sure images added aren't corrupted, and makes sure the image can make a Bitmap
+     * Otherwise, notifies user that the image is corrupted.
+     * Moves user to next page. 
+     */
     public class FileExplorerCommand : ICommand
     {
         public bool CanExecute(object? parameter)
@@ -23,23 +28,40 @@ namespace ML_Annotation_Tool.Commands
 
         public async void Execute(object? parameter)
         {
+            // Dialog that allows user to open folder
             var openFolderDialog = new OpenFolderDialog();
             var result = await openFolderDialog.ShowAsync(new Window());
+
+            // Boolean used to check whether program should move on to the next page, or force the user
+            // to choose another folder that actually contains valid images.
+            bool imageAdded = false;
             Bitmap testImage;
             if (result != null)
             {
+                // Clear previous images. There can only be one database used at a time.
+                if (source.accessor != null)
+                {
+                    source.accessor.ClearImages();
+                }
+
+                // Open connetion to SQLite database using the ViewModel's method.
+                source.InitializeConnection(result);
+
                 List<string> paths = new List<string>(Directory.GetFiles(result));
                 // Should probably double check if .webp is supported by Avalonia
                 List<string> AcceptableExtensions = new List<string> { ".png", ".jpeg", ".jpg", ".bmp", ".gif", ".webp"};
-                string badExts = "";
+                
                 foreach ( string path in paths )
                 {
                     if ( AcceptableExtensions.Contains(Path.GetExtension(path)) )
                     {
                         try
                         {
+                            // Tests whether the image can be turned into a bitmap. If this works,
+                            // the code moving forward assumes the image is a valid one and can be added.
                             testImage = new Bitmap(path);
                             source.AddFileName(path);
+                            imageAdded = true;
                         }
                         catch (Exception ex )
                         {
@@ -48,14 +70,11 @@ namespace ML_Annotation_Tool.Commands
                     } 
                 }
 
-                if (source.ImageCount() > 0)
+                if (imageAdded)
                 {
-                    source.selectedTabIndex += 1;
-                    source.selectedTabIndex %= 3;
-                    source.secondPageEnabled = true;
-                    source.FilesChosen();
-                    // Set Connection.
-                    source.InitializeConnection(result);
+                    // Moves to next page, and enables next page.
+                    source.SelectedTabIndex += 1;
+                    source.SecondPageEnabled = true;
                 }
             }
         }

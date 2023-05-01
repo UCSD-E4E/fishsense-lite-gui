@@ -5,63 +5,77 @@
 		xmlns:local="clr-namespace:ML_Annotation_Tool.Views"
 		xmlns:models="clr-namespace:ML_Annotation_Tool.Models;assembly=ML_Annotation_Tool"
 		xmlns:converters="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Markup"
+		xmlns:data="clr-namespace:ML_Annotation_Tool.Data"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
-        x:Class="ML_Annotation_Tool.Views.MainWindow"
+        x:Class="ML_Annotation_Tool.Views.MainWindow" MinWidth="800" MinHeight="800" 
         Icon="/Assets/avalonia-logo.ico"
-        Title="ML_Annotation_Tool">
-	
-	<TabControl SelectedIndex="{Binding Path=selectedTabIndex}" TabStripPlacement="Top" VerticalAlignment="Top" 
-				Margin="10 10 10 10">
+        Title="ML_Annotation_Tool" Name="Window">
+	<Window.Resources>
+		<models:SubtractionConverter x:Key="subConv"/>
+	</Window.Resources>
+
+	<TabControl SelectedIndex="{Binding Path=SelectedTabIndex}" TabStripPlacement="Top" VerticalAlignment="Top" 
+				Margin="10 10 10 10" Name="TabControl" MinWidth="{Binding Width, ElementName=Window}" MinHeight="100">
+		
 		<TabItem Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Choose files">
 			<StackPanel VerticalAlignment="Center">
-
 				<TextBlock FontSize="18"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center" 
-						   Text="{Binding description}">
+						   Text="{Binding Description}">
 				</TextBlock>
 				<Button Content="Choose individual files"
 						FontSize="18"
 					HorizontalAlignment="Center"
 					VerticalAlignment="Center"
-					Command="{Binding fileExplorer}"
+					Command="{Binding FileExplorer}"
 					Margin="6 100 6 6"></Button>				
 			</StackPanel>
 		</TabItem>
-		<TabItem IsEnabled="{Binding secondPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" 
+		
+		<TabItem IsEnabled="{Binding SecondPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" 
 				 Margin="6 12 6 0" Header="Process files">
 			<Grid RowDefinitions="Auto,*,Auto" Margin="10"> 
 				<TextBlock Grid.Row="0" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Center"
 					Text="Please select the image you wish to begin with; if there is no specific image you wish to start with, the viewer will display images alphabetically."></TextBlock>
 				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" 
 							  Margin="6 30 6 6" MaxWidth="800">
-					<ListBox Items="{Binding fileNames}" SelectedItem="{Binding imageToShow}"/>
+					<ListBox Items="{Binding FileNames}" SelectedItem="{Binding ImageToShow}"/>
 				</ScrollViewer>
 				<StackPanel Grid.Row="2">
-					<Button Command="{Binding clearImages}" Content="Delete all images" IsEnabled="True" HorizontalAlignment="Left"/>
-					<Button Command="{Binding nextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
+					<Button Command="{Binding ClearImages}" Content="Delete all images" IsEnabled="True" HorizontalAlignment="Left"/>
+					<Button Command="{Binding NextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
 				</StackPanel>
 			</Grid>
-			
 		</TabItem>
-		<TabItem IsEnabled="{Binding thirdPageEnabled}" Background="AliceBlue" BorderBrush="Black" 
-				 BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer">
-			<Grid>
-				<StackPanel Grid.Row="0" Orientation="Horizontal" IsVisible="False" Width="0" Height="0">
-					<Button Content="Show next image" Margin="100 0 0 0" Command="{Binding showNextImage}" HotKey="D"/>
-					<Button Content="Show previous image" Command="{Binding showPreviousImage}" HotKey="A"/>
-					<Button Content="Annotate Fish Head" IsVisible="False" HotKey="H"/>
-					<Button Content="Annotate Fish Tail" IsVisible="False" HotKey="T"/>
-					<Button Content="Annotate Fish Body" IsVisible="False" HotKey="B"/>
-					<Button Content="Clear Annotations" Click="ClearAnnotations" />
-				</StackPanel>
-					<Canvas Background="Transparent" Grid.Row="1"
-					PointerPressed="CanvasPointerPressed"
-					PointerReleased="OnCanvasReleased"
-					Name="AnnotationCanvas" ZIndex="2">
-						<ItemsControl Items="{Binding annotations}"></ItemsControl>
-					</Canvas>
+		
+		<TabItem IsEnabled="{Binding ThirdPageEnabled}" Background="AliceBlue" BorderBrush="Black" 
+				 BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			<Grid RowDefinitions="Auto" Name="Grid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<StackPanel Grid.Row="0" Orientation="Horizontal">
+					
+					<Button IsVisible="False" Content="Show next image" IsEnabled="{Binding ThirdPageEnabled}"
+							Command="{Binding SwitchImage}" CommandParameter="D" HotKey="D"/>
+					
+					<Button IsVisible="False" Content="Show previous image"  IsEnabled="{Binding ThirdPageEnabled}" 
+							Command="{Binding SwitchImage}" CommandParameter="A" HotKey="A"/>
+					
+					<Button IsVisible="False" Content="Annotate Fish Head" IsEnabled="{Binding ThirdPageEnabled}" 
+							Command="{Binding HeadAnnotationDescriptor}" HotKey="H"/>
+					
+					<Button IsVisible="False" Content="Annotate Fish Tail" IsEnabled="{Binding ThirdPageEnabled}" 
+							Command="{Binding TailAnnotationDescriptor}" HotKey="T"/>
+					
+					<Button IsVisible="False" Content="Annotate Fish Body" IsEnabled="{Binding ThirdPageEnabled}" 
+							Command="{Binding BodyAnnotationDescriptor}" HotKey="B"/>
+					
+					<Button IsVisible="False" Content="Clear Annotations" IsEnabled="{Binding ThirdPageEnabled}" 
+							Command="{Binding ClearImages}"/>
 
-					<Image ZIndex="0" Grid.Row="1" x:Name="DisplayedImage" Source="{Binding ImageToShow}"
-								PointerPressed="OnImagePressed"/>			
+					<Image x:Name="DisplayedImage" Source="{Binding ImageToShow}"
+							PointerPressed="OnImagePointerPressed"  
+						    PointerReleased="OnImagePointerReleased">
+					</Image>
+					
+				</StackPanel>
 			</Grid>
 		</TabItem>
 	</TabControl>

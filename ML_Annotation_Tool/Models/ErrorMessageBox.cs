@@ -11,6 +11,10 @@ using System.Windows.Input;
 
 namespace ML_Annotation_Tool.Models
 {
+    /* Simple class to pass in a string and just display an error message just from the image itself.
+     * Saves having to reinitialize the image with the string, calling the show method, and adding features 
+     * like a close window button.
+     */
     public class ErrorMessageBox : Window
     {
         Window ErrorWindow;

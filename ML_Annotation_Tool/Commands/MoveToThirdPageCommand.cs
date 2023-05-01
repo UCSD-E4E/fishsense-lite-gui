@@ -10,7 +10,10 @@ using System.Windows.Input;
 
 namespace ML_Annotation_Tool.Commands
 {
-    public class NextPageCommand : ICommand
+    /* Command to move to the next page. 
+     * Currently only linked to a button on the xaml of Page 2 to move to page 3.
+     */
+    public class MoveToThirdPageCommand : ICommand
     {
         public event EventHandler? CanExecuteChanged;
 
@@ -21,13 +24,15 @@ namespace ML_Annotation_Tool.Commands
 
         public async void Execute(object? parameter)
         {
-            source.selectedTabIndex += 1;
-            source.selectedTabIndex %= 3;
-            source.thirdPageEnabled = true;
+            source.SelectedTabIndex += 1;
+            source.SelectedTabIndex %= 3;
+            source.ThirdPageEnabled = true;
+
+            source.InitializeImage();
         }
 
         private MainWindowViewModel source;
-        public NextPageCommand(MainWindowViewModel source)
+        public MoveToThirdPageCommand(MainWindowViewModel source)
         {
             this.source = source;
         }
