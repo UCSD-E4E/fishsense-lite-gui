@@ -38,6 +38,19 @@ namespace ML_Annotation_Tool.ViewModels
                 OnPropertyChanged();
             }
         }
+        private string _pathForImageToShow;
+        public string PathForImageToShow
+        {
+            get => _pathForImageToShow;
+            set
+            {
+                _pathForImageToShow = value;
+                if (NextPage != null)
+                {
+                    NextPage.Execute("");
+                }
+            }
+        }
         // Contains Avalonia.Media.Imaging.Bitmap that will be displayed in UI
         private Avalonia.Media.Imaging.Bitmap _imageToShow;
         public Avalonia.Media.Imaging.Bitmap ImageToShow
@@ -203,7 +216,9 @@ namespace ML_Annotation_Tool.ViewModels
             // Initialize Window Size
             WindowWidth = 1280;
             WindowHeight = 720;
-            State = WindowState.Maximized; // Does nothing to change size of window after the values above.
+            // GitHub issue with this bug: https://github.com/AvaloniaUI/Avalonia/pull/9221. 
+            // Using maximized in the code behind instead.
+            State = WindowState.Maximized; 
 
             // Create Description String.
             Description = new StringBuilder();
@@ -216,6 +231,7 @@ namespace ML_Annotation_Tool.ViewModels
             
             // Create indexes.
             SelectedTabIndex = 0;
+            PathForImageToShow = String.Empty;
 
             // Initialize commands.
             FileExplorer = new FileExplorerCommand(this);
@@ -253,7 +269,8 @@ namespace ML_Annotation_Tool.ViewModels
             // Currently using a "" just because no initial image feature has been created, but this will 
             // will be added in the future. "" doesn't share any of the same image path names and so it will
             // choose the first image for its 
-            accessor.ChooseFirstImage("");
+
+            accessor.ChooseFirstImage(PathForImageToShow);
         }
 
         internal void InitializeCanvas(Canvas annotationCanvas)

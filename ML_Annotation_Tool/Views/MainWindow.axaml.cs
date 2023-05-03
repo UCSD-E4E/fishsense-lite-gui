@@ -16,8 +16,8 @@ namespace ML_Annotation_Tool.Views
     {
         public MainWindow()
         {
-            this.WindowState = WindowState.Maximized;
             InitializeComponent();
+            Window.WindowState = WindowState.Maximized;
         }
 
         Point startPoint;

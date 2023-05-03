@@ -5,6 +5,7 @@
 		xmlns:local="clr-namespace:ML_Annotation_Tool.Views"
 		xmlns:models="clr-namespace:ML_Annotation_Tool.Models;assembly=ML_Annotation_Tool"
 		xmlns:converters="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Markup"
+		xmlns:ia="clr-namespace:Avalonia.Interactivity;assembly=Avalonia.Interactivity"
 		xmlns:data="clr-namespace:ML_Annotation_Tool.Data"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
 		MinHeight="100" MinWidth="0" 
@@ -35,10 +36,9 @@
 			<Grid RowDefinitions="Auto,*,Auto" Margin="10"> 
 				<TextBlock Grid.Row="0" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Center"
 					Text="Please select the image you wish to begin with; if there is no specific image you wish to start with, the viewer will display images alphabetically."></TextBlock>
-				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" 
-							  Margin="6 30 6 6" MaxWidth="800">
-					<ListBox Items="{Binding FileNames}" SelectedItem="{Binding ImageToShow}"/>
-				</ScrollViewer>
+					<ListBox Grid.Row="1" 
+						  Margin="6 30 6 6" MaxWidth="800" Items="{Binding FileNames}" SelectedItem="{Binding PathForImageToShow}"/>
+
 				<StackPanel Grid.Row="2">
 					<Button Command="{Binding ClearImages}" Content="Delete all images" IsEnabled="True" HorizontalAlignment="Left"/>
 					<Button Command="{Binding NextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
