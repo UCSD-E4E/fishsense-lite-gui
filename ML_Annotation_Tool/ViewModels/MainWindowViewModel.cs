@@ -1,6 +1,12 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Media;
 using ML_Annotation_Tool.Commands;
 using ML_Annotation_Tool.Models;
+using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text;
 using System.Windows.Input;
 
@@ -29,10 +35,9 @@ namespace ML_Annotation_Tool.ViewModels
             set
             {
                 _fileNames = value;
-                OnPropertyChanged(nameof(FileNames));
+                OnPropertyChanged();
             }
         }
-
         // Contains Avalonia.Media.Imaging.Bitmap that will be displayed in UI
         private Avalonia.Media.Imaging.Bitmap _imageToShow;
         public Avalonia.Media.Imaging.Bitmap ImageToShow
@@ -42,28 +47,91 @@ namespace ML_Annotation_Tool.ViewModels
             {
                 _imageToShow = value;
                 OnPropertyChanged(nameof(ImageToShow));
-                ImageHeight = accessor.getHeight();
-                ImageWidth = accessor.getWidth();
+                OnPropertyChanged(nameof(ImageHeight));
+                OnPropertyChanged(nameof(ImageWidth));
             }
         }
 
         // Another method to display images properly in xaml. Height and Width is necessary to add annotations using the values of 
-        // the exact pixels of the image.
+        // the exact pixels of the image. Figure out why the WindowState.Maximized binding doesn't work (Window doesn't start maximized)
 
+        private WindowState _state;
+        public WindowState State
+        {
+            get => _state;
+            set
+            {
+                if (_state != value)
+                {
+                    _state = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        private double _windowHeight;
+        public double WindowHeight
+       {
+           get => _windowHeight;
+           set
+           {
+               if (_windowHeight != value )
+               {
+                   _windowHeight = value;
+                   OnPropertyChanged();
+                   OnPropertyChanged(nameof(ImageHeight));
+                   OnPropertyChanged(nameof(ImageWidth));
+               }
+           }
+       }
         private int _imageHeight;
         public int ImageHeight
         {
-            get => _imageHeight;
+            get
+            {
+                if (accessor != null)
+                {
+                    return accessor.getHeight(WindowHeight, WindowWidth);
+                } 
+                else
+                {
+                    return 0;
+                }
+            } 
             set
             {
                 _imageHeight = value;
-                OnPropertyChanged(nameof(ImageHeight));
+                OnPropertyChanged();
+            }
+        }
+        private double _windowWidth;
+        public double WindowWidth
+        {
+            get => _windowWidth;
+            set
+            {
+                if (_windowWidth != value )
+                {
+                    _windowWidth = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ImageHeight));
+                    OnPropertyChanged(nameof(ImageWidth));
+                }
             }
         }
         private int _imageWidth;
         public int ImageWidth
         {
-            get => _imageWidth;
+            get
+            {
+                if (accessor != null)
+                {
+                    return accessor.getWidth(WindowHeight, WindowWidth);
+                } 
+                else
+                {
+                    return 0;
+                }
+            }
             set
             {
                 _imageWidth = value;
@@ -106,26 +174,6 @@ namespace ML_Annotation_Tool.ViewModels
             }
         }
 
-        private bool _displaySelectedImages = true;
-        public bool DisplaySelectedImages
-        {
-            get { return _displaySelectedImages; }
-            set
-            {
-                _displaySelectedImages = value;
-                OnPropertyChanged(nameof(DisplaySelectedImages));
-                OnPropertyChanged(nameof(RemovingSelectedImages));
-            }
-        }
-        public bool RemovingSelectedImages
-        {
-            get { return !_displaySelectedImages; }
-            set
-            {
-                _displaySelectedImages = value;
-            }
-        }
-
         // Descriptor that is updated by the SwitchAnntationDescriptor.cs class.
         private int _annotationDescriptor;
         public int AnnotationDescriptor
@@ -143,6 +191,8 @@ namespace ML_Annotation_Tool.ViewModels
         public ICommand SwitchImage { get; }
         public ICommand ClearImages { get; }
 
+        // Individual commands that switch the Annotation Descriptor for following annotations.
+        // H = Head = Red, B = Body = Black, T = Tail = Green.
         public ICommand HeadAnnotationDescriptor { get; }
         public ICommand TailAnnotationDescriptor { get; }
         public ICommand BodyAnnotationDescriptor { get; }
@@ -150,14 +200,20 @@ namespace ML_Annotation_Tool.ViewModels
         public DB_Accessor accessor;
         public MainWindowViewModel()
         {
+            // Initialize Window Size
+            WindowWidth = 1280;
+            WindowHeight = 720;
+            State = WindowState.Maximized; // Does nothing to change size of window after the values above.
+
             // Create Description String.
             Description = new StringBuilder();
             Description.Append(_sentenceOne);
             Description.Append(_sentenceTwo);
             Description.Append(_sentenceThree);
 
-            // Initialize the filenames collection.
+            // Initialize the private Observable Collections
             _fileNames = new ObservableCollection<string>();
+            
             // Create indexes.
             SelectedTabIndex = 0;
 
@@ -176,10 +232,11 @@ namespace ML_Annotation_Tool.ViewModels
             // Model layer.
             accessor = new DB_Accessor(path, this);
         }
-        // This method is called from the code behind, and this method just routes the data from the code behind to the model.
-        public void AddAnnotation(Avalonia.Point startPoint, Avalonia.Point endPoint, int width, int height)
+        
+        public void AddAnnotation(Avalonia.Point startPoint, Avalonia.Point endPoint)
         {
-            accessor.AddAnnotation(AnnotationDescriptor, startPoint, endPoint, width, height);
+            // This method is called from the code behind, and this method just routes the data from the code behind to the model.
+            accessor.AddAnnotation(AnnotationDescriptor, startPoint, endPoint, ImageWidth, ImageHeight);
         }
         public void AddFileName(string imagePath)
         {
@@ -197,6 +254,11 @@ namespace ML_Annotation_Tool.ViewModels
             // will be added in the future. "" doesn't share any of the same image path names and so it will
             // choose the first image for its 
             accessor.ChooseFirstImage("");
+        }
+
+        internal void InitializeCanvas(Canvas annotationCanvas)
+        {
+            accessor.AddCanvas(annotationCanvas, (int)WindowHeight, (int)WindowWidth);
         }
     }
 }

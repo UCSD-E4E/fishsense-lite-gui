@@ -7,17 +7,16 @@
 		xmlns:converters="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Markup"
 		xmlns:data="clr-namespace:ML_Annotation_Tool.Data"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
-        x:Class="ML_Annotation_Tool.Views.MainWindow" MinWidth="800" MinHeight="800" 
-        Icon="/Assets/avalonia-logo.ico"
+		MinHeight="100" MinWidth="0" 
+        x:Class="ML_Annotation_Tool.Views.MainWindow"  Width="{Binding WindowWidth, Mode=TwoWay}" Height="{Binding WindowHeight, Mode=TwoWay}"
+        Icon="/Assets/avalonia-logo.ico" WindowState="{Binding State, Mode=TwoWay}" 
         Title="ML_Annotation_Tool" Name="Window">
-	<Window.Resources>
-		<models:HeightConverter x:Key="heightConv"/>
-	</Window.Resources>
+
 
 	<TabControl SelectedIndex="{Binding Path=SelectedTabIndex}" TabStripPlacement="Top" VerticalAlignment="Top" 
-				Margin="10 10 10 10" Name="TabControl" MinWidth="{Binding Width, ElementName=Window}" MinHeight="100">
+				Margin="10 10 10 10" Name="TabControl" >
 		
-		<TabItem Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Choose files">
+		<TabItem Background="AliceBlue" BorderBrush="Black" BorderThickness="1" Margin="6 12 6 0" Header="Choose files" Height="50">
 			<StackPanel VerticalAlignment="Center">
 				<TextBlock FontSize="18"  Margin="100 6 100 6" TextWrapping="Wrap" HorizontalAlignment="Center" 
 						   Text="{Binding Description}">
@@ -31,7 +30,7 @@
 			</StackPanel>
 		</TabItem>
 		
-		<TabItem IsEnabled="{Binding SecondPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1" 
+		<TabItem IsEnabled="{Binding SecondPageEnabled}" Background="AliceBlue" BorderBrush="Black" BorderThickness="1"  Height="50"
 				 Margin="6 12 6 0" Header="Process files">
 			<Grid RowDefinitions="Auto,*,Auto" Margin="10"> 
 				<TextBlock Grid.Row="0" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Center"
@@ -47,35 +46,46 @@
 			</Grid>
 		</TabItem>
 		
-		<TabItem IsEnabled="{Binding ThirdPageEnabled}" Background="AliceBlue" BorderBrush="Black" 
-				 BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<Grid RowDefinitions="Auto" Name="Grid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<StackPanel Grid.Row="0" Orientation="Horizontal">
-					
+		<TabItem IsEnabled="{Binding ThirdPageEnabled}" Background="AliceBlue" BorderBrush="Black"  Height="50" 
+				 BorderThickness="1" Margin="6 12 6 0" Header="Image Viewer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+			<Grid Name="Grid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+
+				<StackPanel Orientation="Horizontal" IsVisible="False">
 					<Button IsVisible="False" Content="Show next image" IsEnabled="{Binding ThirdPageEnabled}"
 							Command="{Binding SwitchImage}" CommandParameter="D" HotKey="D"/>
-					
-					<Button IsVisible="False" Content="Show previous image"  IsEnabled="{Binding ThirdPageEnabled}" 
-							Command="{Binding SwitchImage}" CommandParameter="A" HotKey="A"/>
-					
-					<Button IsVisible="False" Content="Annotate Fish Head" IsEnabled="{Binding ThirdPageEnabled}" 
-							Command="{Binding HeadAnnotationDescriptor}" HotKey="H"/>
-					
-					<Button IsVisible="False" Content="Annotate Fish Tail" IsEnabled="{Binding ThirdPageEnabled}" 
-							Command="{Binding TailAnnotationDescriptor}" HotKey="T"/>
-					
-					<Button IsVisible="False" Content="Annotate Fish Body" IsEnabled="{Binding ThirdPageEnabled}" 
-							Command="{Binding BodyAnnotationDescriptor}" HotKey="B"/>
-					
-					<Button IsVisible="False" Content="Clear Annotations" IsEnabled="{Binding ThirdPageEnabled}" 
-							Command="{Binding ClearImages}"/>
 
-					<Image x:Name="DisplayedImage" Source="{Binding ImageToShow}"
-							PointerPressed="OnImagePointerPressed" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}"
-						    PointerReleased="OnImagePointerReleased">
-					</Image>
-					
+					<Button IsVisible="False" Content="Show previous image"  IsEnabled="{Binding ThirdPageEnabled}"
+							Command="{Binding SwitchImage}" CommandParameter="A" HotKey="A"/>
+
+					<Button IsVisible="False" Content="Annotate Fish Head" IsEnabled="{Binding ThirdPageEnabled}"
+							Command="{Binding HeadAnnotationDescriptor}" HotKey="H"/>
+
+					<Button IsVisible="False" Content="Annotate Fish Tail" IsEnabled="{Binding ThirdPageEnabled}"
+							Command="{Binding TailAnnotationDescriptor}" HotKey="T"/>
+
+					<Button IsVisible="False" Content="Annotate Fish Body" IsEnabled="{Binding ThirdPageEnabled}"
+							Command="{Binding BodyAnnotationDescriptor}" HotKey="B"/>
+
+					<Button IsVisible="False" Content="Clear Annotations" IsEnabled="{Binding ThirdPageEnabled}"
+							Command="{Binding ClearImages}"/>
 				</StackPanel>
+
+				<Image Grid.Row="0" Grid.Column="0"
+					   x:Name="DisplayedImage" Source="{Binding ImageToShow}" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}"></Image>
+				
+				<Canvas Grid.Row="0" Grid.Column="0" Background="Transparent" ZIndex="1" x:Name="AnnotationCanvas"
+					    Height="{Binding Height, ElementName=DisplayedImage}" Width="{Binding Width, ElementName=DisplayedImage}"
+					    PointerPressed="OnCanvasPointerPressed"  AttachedToVisualTree="CanvasInitialized"
+					    PointerReleased="OnCanvasPointerReleased">
+				</Canvas>
+				
 			</Grid>
 		</TabItem>
 	</TabControl>

@@ -48,6 +48,7 @@ namespace ML_Annotation_Tool.Commands
                 source.InitializeConnection(result);
 
                 List<string> paths = new List<string>(Directory.GetFiles(result));
+                paths.Sort();
                 // Should probably double check if .webp is supported by Avalonia
                 List<string> AcceptableExtensions = new List<string> { ".png", ".jpeg", ".jpg", ".bmp", ".gif", ".webp"};
                 

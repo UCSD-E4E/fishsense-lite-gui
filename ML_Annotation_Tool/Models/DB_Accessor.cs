@@ -1,10 +1,13 @@
-﻿using ML_Annotation_Tool.Data;
+﻿using Avalonia.Controls;
+using Avalonia.Media;
+using ML_Annotation_Tool.Data;
 using ML_Annotation_Tool.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net;
 using static ML_Annotation_Tool.Models.indices;
 
 namespace ML_Annotation_Tool.Models
@@ -30,11 +33,13 @@ namespace ML_Annotation_Tool.Models
         private Database db;
         private MainWindowViewModel source;
         private Bitmap OriginalImage;
-        private Bitmap EditedImage;
 
         // Contains custom EditableBitmap class that contains method to add annotations, pixel by pixel to the bitmaps
-        private ObservableCollection<EditableBitmap> bitmaps;
+        private ObservableCollection<Bitmap> bitmaps;
         private ObservableCollection<string> fullPaths;
+
+        private int WindowHeight;
+        private int WindowWidth;
 
         private int _imageIndex;
         public int ImageIndex
@@ -47,12 +52,15 @@ namespace ML_Annotation_Tool.Models
                 ImageUpdated();                
             }
         }
+
+        public Canvas AnnotationCanvas { get; private set; }
+
         // Creates database object using passed in path, and stores view model to access data.
         public DB_Accessor(string path, MainWindowViewModel source)
         {
             db = new Database(path);
             this.source = source;
-            bitmaps = new ObservableCollection<EditableBitmap>();
+            bitmaps = new ObservableCollection<Bitmap>();
             fullPaths = new ObservableCollection<string>();
 
             // For now, initializes image index to 0. Will later order list in alphabetical order.
@@ -60,7 +68,8 @@ namespace ML_Annotation_Tool.Models
         }
         public void ImageUpdated()
         {
-            // Adds annnotations that were previously stored in database.
+            // Adds annnotations that were previously stored in database, and clear previous image's annotations.
+            AnnotationCanvas.Children.Clear();
             AddPreviousAnnotations();
 
              /* Converts image from System.Drawing.Bitmap to Avalonia.Media.Imaging.Bitmap.
@@ -72,7 +81,7 @@ namespace ML_Annotation_Tool.Models
                 //https://www.appsloveworld.com/opencv/100/26/is-it-possible-to-create-avalonia-media-imaging-bitmap-from-system-drawing-bitmap
                 // Loads image into memory stream. This is done to store the data because you can't just cast
                 // from one type to the other.
-                EditedImage.Save(memory, ImageFormat.Png);
+                OriginalImage.Save(memory, ImageFormat.Png);
 
                 // Could be unnecessary line, should research the purpose of it further, but the tutorial used it.
                 memory.Position = 0;
@@ -86,16 +95,31 @@ namespace ML_Annotation_Tool.Models
         // bitmap to display in the UI.
         private void AddPreviousAnnotations()
         {
+            string AnnotationDescriptor;
             foreach (string[] data in db.RequestAnnotationsForPath(Path.GetFileName(fullPaths[ImageIndex])))
             {
-                // Enums are indexes 0-4, just added for extra readability. Could remove later if too verbose.
-                bitmaps[ImageIndex].AddAnnotation(Convert.ToInt32(data[(int)ANNOTATIONDESCRIPTOR]), 
-                                                  Convert.ToInt32(data[(int)TOPLEFTX]), 
-                                                  Convert.ToInt32(data[(int)TOPLEFTY]),
-                                                  Convert.ToInt32(data[(int)BOTTOMRIGHTX]), 
-                                                  Convert.ToInt32(data[(int)BOTTOMRIGHTY]), 
-                                                  getWidth(), 
-                                                  getHeight());
+                int startPointX = (int)(Convert.ToDouble(data[(int)TOPLEFTX]) / OriginalImage.Width * getWidth(WindowHeight, WindowWidth));
+                int startPointY = (int)(Convert.ToDouble(data[(int)TOPLEFTY]) / OriginalImage.Height * getHeight(WindowHeight, WindowWidth));
+                Avalonia.Point startPoint = new Avalonia.Point(startPointX, startPointY);
+
+                int endPointX = (int)(Convert.ToDouble(data[(int)BOTTOMRIGHTX]) /  OriginalImage.Width * getWidth(WindowHeight, WindowWidth));
+                int endPointY = (int)(Convert.ToDouble(data[(int)BOTTOMRIGHTY]) / OriginalImage.Height * getHeight(WindowHeight, WindowWidth));
+                Avalonia.Point endPoint = new Avalonia.Point(endPointX, endPointY);
+
+                AnnotationDescriptor = data[(int)ANNOTATIONDESCRIPTOR];
+                if (AnnotationDescriptor == "0")
+                {
+                    AddRectangle(startPoint, endPoint, Avalonia.Media.Brushes.Red);
+                }
+                else if (AnnotationDescriptor == "1")
+                {
+                    AddRectangle(startPoint, endPoint, Avalonia.Media.Brushes.Green);
+                }
+                else if (AnnotationDescriptor == "2")
+                {
+                    AddRectangle(startPoint, endPoint, Avalonia.Media.Brushes.Black);
+                }
+                
             }
         }
         
@@ -106,46 +130,44 @@ namespace ML_Annotation_Tool.Models
         {
             if (!string.IsNullOrEmpty(fileName))
             {
-                foreach (EditableBitmap image in bitmaps)
+                foreach (string ImageFileName in getFileNames())
                 {
-                    if (image.Equals(fileName))
+                    if (ImageFileName.Equals(fileName))
                     {
-                        OriginalImage = image.getOriginalBitmap();
-                        EditedImage = image.getEditedBitmap();
-                        ImageIndex = bitmaps.IndexOf(image);
+                        OriginalImage = bitmaps[getFileNames().IndexOf(ImageFileName)]; 
+                        ImageIndex = getFileNames().IndexOf(ImageFileName);
                     }
                 }
             } else
             {
-                OriginalImage = bitmaps[0].getOriginalBitmap();
-                EditedImage = bitmaps[0].getEditedBitmap();
+                OriginalImage = bitmaps[0];
                 ImageIndex = 0;
             }
         }
 
         public void AddImage(string fullPath)
         {
-            bitmaps.Add(new EditableBitmap(fullPath));
+            bitmaps.Add(new Bitmap(fullPath));
             fullPaths.Add(fullPath);
         }
 
         // Adds the annotation to the database and updates the UI with newly annotated image.
         public void AddAnnotation(int AnnotationDescriptor, Avalonia.Point firstPoint, Avalonia.Point secondPoint, int width, int height)
         {
+            //AddRectangle(firstPoint, secondPoint);
+
             // Finds min and max to see which is the top left and which is the bottom right.
-            int topLeftX = Math.Min((int)firstPoint.X, (int)secondPoint.X);
-            int topLeftY = Math.Min((int)firstPoint.Y, (int)secondPoint.Y);
-            int bottomRightX = Math.Max((int)firstPoint.X, (int)secondPoint.X); 
-            int bottomRightY = Math.Max((int)firstPoint.Y, (int)secondPoint.Y);
+            double topLeftX = Math.Min(firstPoint.X, secondPoint.X);
+            double topLeftY = Math.Min(firstPoint.Y, secondPoint.Y);
+            double bottomRightX = Math.Max(firstPoint.X, secondPoint.X); 
+            double bottomRightY = Math.Max(firstPoint.Y, secondPoint.Y);
 
             // Adds data to database.
-            db.InsertData(AnnotationDescriptor.ToString(), System.IO.Path.GetFileName(fullPaths[ImageIndex]), topLeftX, topLeftY, bottomRightX, bottomRightY);
-            
-            // Edits image's bitmap directly.
-            bitmaps[ImageIndex].AddAnnotation(AnnotationDescriptor, topLeftX, topLeftY, bottomRightX, bottomRightY, width, height);
-
-            // Adds edited image to model.
-            EditedImage = bitmaps[ImageIndex].getEditedBitmap();
+            db.InsertData(AnnotationDescriptor.ToString(), System.IO.Path.GetFileName(fullPaths[ImageIndex]),
+                Convert.ToInt32(topLeftX / width * OriginalImage.Width), 
+                Convert.ToInt32(topLeftY / height * OriginalImage.Height), 
+                Convert.ToInt32(bottomRightX / width * OriginalImage.Width), 
+                Convert.ToInt32(bottomRightY / height * OriginalImage.Height));
 
             // Notifies UI that the Image has been upadted.
             ImageUpdated();
@@ -153,14 +175,14 @@ namespace ML_Annotation_Tool.Models
 
         public Bitmap getCurrentImage() 
         {  
-            if (EditedImage == null)
+            if (OriginalImage == null)
             {
                 if (bitmaps.Count > 0)
                 {
-                    EditedImage = bitmaps[0].getEditedBitmap();
+                    OriginalImage = bitmaps[0];
                 }
             }
-            return EditedImage;
+            return OriginalImage;
         }
         public ObservableCollection<string> getFileNames()
         {
@@ -176,8 +198,7 @@ namespace ML_Annotation_Tool.Models
         internal void NextImage()
         {
             int ind = (ImageIndex + 1) % bitmaps.Count;
-            EditedImage = bitmaps[ind].getEditedBitmap();
-            OriginalImage = bitmaps[ind].getOriginalBitmap();
+            OriginalImage = bitmaps[ind];
             ImageIndex = ind;
 
         }
@@ -189,20 +210,108 @@ namespace ML_Annotation_Tool.Models
             {
                 ind = bitmaps.Count - 1;
             }
-            EditedImage = bitmaps[ind].getEditedBitmap();
-            OriginalImage = bitmaps[ind].getOriginalBitmap();
+            OriginalImage = bitmaps[ind];
 
             ImageIndex = ind;
         }
 
-        public int getHeight()
+        public int getHeight(double windowHeight, double windowWidth)
         {
-            return EditedImage.Height;
+            double ProportionToDisplay = 0.0;
+            this.WindowWidth = (int)windowWidth;
+            this.WindowHeight = (int)windowHeight;
+            if (OriginalImage.Height > (windowHeight - 100) || OriginalImage.Width > windowWidth)
+            {
+                if ((double)OriginalImage.Height / (windowHeight - 100) > (double)OriginalImage.Width / windowWidth)
+                {
+                    ProportionToDisplay = (double)OriginalImage.Height / (windowHeight - 100);
+                }
+                else
+                {
+                    ProportionToDisplay = (double)OriginalImage.Width / windowWidth;
+                }
+                return (int)(OriginalImage.Height / ProportionToDisplay);
+            }
+            else
+            {
+                return OriginalImage.Height;
+            }
         }
 
-        public int getWidth()
+        public int getWidth(double windowHeight, double windowWidth)
         {
-            return EditedImage.Width;
+            double ProportionToDisplay = 0.0;
+            this.WindowWidth = (int)windowWidth;
+            this.WindowHeight = (int)windowHeight;
+            if (OriginalImage.Height > (windowHeight - 100) || OriginalImage.Width > windowWidth)
+            {
+                if ((double)OriginalImage.Height / (windowHeight - 100) > (double)OriginalImage.Width / windowWidth)
+                {
+                    ProportionToDisplay = (double)OriginalImage.Height / (windowHeight - 100);
+                }
+                else
+                {
+                    ProportionToDisplay = (double)OriginalImage.Width / windowWidth;
+                }
+                return (int)(OriginalImage.Width / ProportionToDisplay);
+            }
+            else
+            {
+                return OriginalImage.Width;
+            }
+        }
+
+        internal Avalonia.Media.Imaging.Bitmap getCurrentImageToShow()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddRectangle(Avalonia.Point startPoint, Avalonia.Point endPoint, ISolidColorBrush brush)
+        {
+            Avalonia.Point intermediatePointOne = new Avalonia.Point((int)startPoint.X, (int)endPoint.Y);
+            Avalonia.Point intermediatePointTwo = new Avalonia.Point((int)endPoint.X, (int)startPoint.Y);
+            
+            Avalonia.Controls.Shapes.Line lineOne = new Avalonia.Controls.Shapes.Line();
+            Avalonia.Controls.Shapes.Line lineTwo = new   Avalonia.Controls.Shapes.Line();
+            Avalonia.Controls.Shapes.Line lineThree = new Avalonia.Controls.Shapes.Line();
+            Avalonia.Controls.Shapes.Line lineFour = new  Avalonia.Controls.Shapes.Line();
+
+            // Define line data
+            lineOne.StrokeThickness = 4;
+            lineTwo.StrokeThickness = 4;
+            lineThree.StrokeThickness = 4;
+            lineFour.StrokeThickness = 4;
+
+            lineOne.Stroke = brush;
+            lineTwo.Stroke = brush;
+            lineThree.Stroke = brush;
+            lineFour.Stroke = brush;
+
+            // Define start and end points for the lines.
+            lineOne.StartPoint = startPoint;
+            lineOne.EndPoint = intermediatePointOne;
+
+            lineTwo.StartPoint = intermediatePointOne;
+            lineTwo.EndPoint = endPoint;
+
+            lineThree.StartPoint = endPoint;
+            lineThree.EndPoint = intermediatePointTwo;
+
+            lineFour.StartPoint = intermediatePointTwo;
+            lineFour.EndPoint = startPoint;
+
+            // Add lines to Rectangles collection
+            this.AnnotationCanvas.Children.Add(lineOne);
+            this.AnnotationCanvas.Children.Add(lineTwo);
+            this.AnnotationCanvas.Children.Add(lineThree);
+            this.AnnotationCanvas.Children.Add(lineFour);
+        }
+
+        internal void AddCanvas(Canvas annotationCanvas, int windowHeight, int windowWidth)
+        {
+            this.AnnotationCanvas = annotationCanvas;
+            this.WindowHeight = windowHeight;
+            this.WindowWidth = windowWidth;
         }
     }
 }
