@@ -6,6 +6,6 @@ Below is a task list for the app:
 - [x] Sync Data with SQLite Database and ensure users can save previous annotations.
 - [x] Add vectorized annotations.
 - [x] Cycle through camera and change color of bounding boxes with built in hotkeys to allow quick labeling of the data.
-- [x] Select first image from Scrollviewer.
+- [x] Select image from Scrolling control when clicked.
 - [ ] Remove previous annotations.
 - (Future features will be updated as they are determined.)
