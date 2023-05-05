@@ -10,7 +10,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
 		MinHeight="100" MinWidth="0" 
         x:Class="ML_Annotation_Tool.Views.MainWindow"  Width="{Binding WindowWidth, Mode=TwoWay}" Height="{Binding WindowHeight, Mode=TwoWay}"
-        Icon="/Assets/avalonia-logo.ico" WindowState="{Binding State, Mode=TwoWay}" 
+        Icon="/Assets/FredTheFish.ico" WindowState="{Binding State, Mode=TwoWay}" 
         Title="ML_Annotation_Tool" Name="Window">
 
 
