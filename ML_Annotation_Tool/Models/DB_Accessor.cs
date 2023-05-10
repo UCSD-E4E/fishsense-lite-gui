@@ -243,6 +243,7 @@ namespace ML_Annotation_Tool.Models
             double ProportionToDisplay = 0.0;
             this.WindowWidth = (int)windowWidth;
             this.WindowHeight = (int)windowHeight;
+            // 100 is the height of the tab bar at the top, allowing us to compare it to the space actually available for the image.
             if (OriginalImage.Height > (windowHeight - 100) || OriginalImage.Width > windowWidth)
             {
                 if ((double)OriginalImage.Height / (windowHeight - 100) > (double)OriginalImage.Width / windowWidth)
