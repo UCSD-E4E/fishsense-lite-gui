@@ -1,40 +1,42 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using DynamicData;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ML_Annotation_Tool.Models
+namespace FishSenseLiteGUI.SupplementaryClasses
 {
-    /* Simple class to pass in a string and just display an error message just from the image itself.
-     * Saves having to reinitialize the image with the string, calling the show method, and adding features 
-     * like a close window button.
-     */
+    /// <summary>
+    /// Purpose of class is to create a simple error box (similar to ErrorMessageBox in WPF).
+    /// 
+    /// Has no constructor, just a static method whose usage is ErrorMessageBox.Show("Error Message").
+    /// </summary>
     public class ErrorMessageBox : Window
     {
-        Window ErrorWindow;
-        public ErrorMessageBox(string message)
+        private static Window ErrorWindow;
+        private static TextBlock ErrorText;
+        private static Button CloseButton;
+        private static CloseCommand Close;
+        private static StackPanel TextButtonStackPanel;
+        public static void Show(string message)
         {
             ErrorWindow = new Window();
-            TextBlock txt = new TextBlock();
-            txt.Text = message;
-            txt.TextWrapping = TextWrapping.Wrap;
 
-            Button CloseButton = new Button();
+            ErrorText = new TextBlock();
+            ErrorText.Text = message;
+            ErrorText.TextWrapping = TextWrapping.Wrap;
+
+            CloseButton = new Button();
             CloseButton.Content = "Close Window";
             CloseButton.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
             CloseButton.Margin = new Thickness(12);
-            CloseCommand Close = new CloseCommand(ErrorWindow);
+
+            Close = new CloseCommand(ErrorWindow);
             CloseButton.Command = Close;
 
 
-            StackPanel TextButtonStackPanel = new StackPanel();
-            TextButtonStackPanel.Children.Add(txt);
+            TextButtonStackPanel = new StackPanel();
+            TextButtonStackPanel.Children.Add(ErrorText);
             TextButtonStackPanel.Children.Add(CloseButton);
 
             ErrorWindow.Content = TextButtonStackPanel;
@@ -56,12 +58,12 @@ namespace ML_Annotation_Tool.Models
 
         public void Execute(object? parameter)
         {
-            this.source.Close();
+            source.Close();
         }
         Window source;
         public CloseCommand(Window source)
         {
             this.source = source;
-        } 
+        }
     }
 }

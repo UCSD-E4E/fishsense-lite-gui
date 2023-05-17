@@ -2,7 +2,7 @@
 using System.Data.SQLite;
 using System.IO;
 
-namespace ML_Annotation_Tool.Data
+namespace FishSenseLiteGUI.Data
 {
     /* Class to interface with Data. This is the data layer.
      * The data is stored in a SQLite database. All the data consists of the annotations.
@@ -15,23 +15,23 @@ namespace ML_Annotation_Tool.Data
      */
     public class Database
     {
-        private SQLiteConnection DB_Connection;
+        private SQLiteConnection DatabaseConnection;
 
         public Database(string directoryPath)
         {
             /* Because directories path differently in UNIX based systems and Windows, 
              * This uses C#'s built in Path combiner. DirectoryPath is the directory chosen by the 
              * File Explorer Command. */
-            string DB_SQLiteFileName = Path.Combine(directoryPath, "DB_ImageAnnotations.db");
+            string DatabaseSQLiteFileName = Path.Combine(directoryPath, "DB_ImageAnnotations.db");
 
-            string DB_ConnectionString = "Data Source=" + DB_SQLiteFileName;
-            DB_Connection = new SQLiteConnection(DB_ConnectionString);
+            string DatabaseConnectionString = "Data Source=" + DatabaseSQLiteFileName;
+            DatabaseConnection = new SQLiteConnection(DatabaseConnectionString);
 
             // This program works for adding annotations to previously annotated data, as well as 
             // creating annotations for previously unannotated data.
-            if (!File.Exists(DB_SQLiteFileName))
+            if (!File.Exists(DatabaseSQLiteFileName))
             {
-                SQLiteConnection.CreateFile(DB_SQLiteFileName);
+                SQLiteConnection.CreateFile(DatabaseSQLiteFileName);
             }
             CreateTableIfNeeded();
         } 
@@ -43,12 +43,12 @@ namespace ML_Annotation_Tool.Data
         {
             // This selects all rows from annotations, which is the name of the table
             // The * is a wildcard character that represents the "all rows".
-             string query = "SELECT * FROM annotations";
+             string query = "SELECT AnnotationDescriptor, ImagePath, TopLeftX, TopLeftY, BottomRightX, BottomRightY FROM annotations";
             
             // Whenever a query is made, a connection is opened, and then closed.
             OpenConnection();
 
-            SQLiteCommand command = new SQLiteCommand(query, DB_Connection);
+            SQLiteCommand command = new SQLiteCommand(query, DatabaseConnection);
             SQLiteDataReader result = command.ExecuteReader();
 
             if (result.HasRows)
@@ -80,18 +80,18 @@ namespace ML_Annotation_Tool.Data
         
         /* This function is called to insert data directly into the SQLite database, and is generally called 
          * when the user wants to add an annotation/draw the box.
-         * The DB_Accessor class will be the only class that calls this method, and provides the method 
+         * The DatabaseModel class will be the only class that calls this method, and provides the method 
          * all the data that will be inserted into the table, allowing this class to have no knowledge of data
          * beyond this class.
          */
-        public void InsertData(string annotationDescriptor, string imagePath, int topLeftX, int topLeftY, int bottomRightX, int bottomRightY)
+        public async void InsertData(string annotationDescriptor, string imagePath, int topLeftX, int topLeftY, int bottomRightX, int bottomRightY)
         {
             // Insertion command. The @ signs are placeholders for individual datapoints.
             string InsertCommand = "INSERT INTO annotations (AnnotationDescriptor, ImagePath, TopLeftX, TopLeftY, " +
                 "BottomRightX, BottomRightY) VALUES (@annotationDescriptor, @imagePath, @topLeftX, @topLeftY, " +
                 "@bottomRightX, @bottomRightY)";
             OpenConnection();
-            SQLiteCommand command = new SQLiteCommand(InsertCommand, DB_Connection);
+            SQLiteCommand command = new SQLiteCommand(InsertCommand, DatabaseConnection);
 
             /* Adding parameters by value is a way to protect against SQL Injection.
             * Directly concatenating strings can be a dangerous task because often users can 
@@ -108,7 +108,7 @@ namespace ML_Annotation_Tool.Data
             command.Parameters.AddWithValue("@bottomRightY", bottomRightY);
 
             // Executes and this preassumes no return data (hence the NonQuery).
-            int result = command.ExecuteNonQuery();
+            int result = await command.ExecuteNonQueryAsync();
             CloseConnection();
         }
 
@@ -116,31 +116,31 @@ namespace ML_Annotation_Tool.Data
          * If there is no annotations that have been previously written, a table must be created, but otherwise, 
          * command will do nothing.
          */
-        private void CreateTableIfNeeded()
+        private async void CreateTableIfNeeded()
         { 
             string CreateCommand = "CREATE TABLE IF NOT EXISTS annotations (AnnotationDescriptor varchar(10), ImagePath varchar(200)" +
                 ", TopLeftX int, TopLeftY int, BottomRightX int, BottomRightY int);";
             OpenConnection();
-            SQLiteCommand command = new SQLiteCommand(CreateCommand, DB_Connection);
+            SQLiteCommand command = new SQLiteCommand(CreateCommand, DatabaseConnection);
 
             int result = command.ExecuteNonQuery();
 
             CloseConnection();
         }
-        private void OpenConnection()
+        private async void OpenConnection()
         {
             // Will ensure all connection states will change into Open, not just when the connection is closed.
-            if (DB_Connection.State != System.Data.ConnectionState.Open)
+            if (DatabaseConnection.State != System.Data.ConnectionState.Open)
             {
-                DB_Connection.Open();
+                await DatabaseConnection.OpenAsync();
             }
         }
-        private void CloseConnection()
+        private async void CloseConnection()
         {
             // WIll ensure all connection states will change into Closed, not just when the connection is losed.
-            if (DB_Connection.State != System.Data.ConnectionState.Closed)
+            if (DatabaseConnection.State != System.Data.ConnectionState.Closed)
             {
-                DB_Connection.Close();
+                await DatabaseConnection.CloseAsync();
             }
         }
     }

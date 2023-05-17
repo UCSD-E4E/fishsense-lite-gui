@@ -1,27 +1,23 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
-using ML_Annotation_Tool.Models;
-using ML_Annotation_Tool.ViewModels;
-using System;
+using FishSenseLiteGUI.ViewModels;
 
-namespace ML_Annotation_Tool.Views
+namespace FishSenseLiteGUI.Views
 {
     public partial class MainWindow : Window
     {
+        Point startPoint;
+        Point endPoint;
+        Canvas? myCanvas;
+        MainWindowViewModel? myCanvasDataContext;
+
         public MainWindow()
         {
             InitializeComponent();
             Window.WindowState = WindowState.Maximized;
         }
-
-        Point startPoint;
-        Point endPoint;
 
         private void CanvasInitialized(object sender, VisualTreeAttachmentEventArgs e)
         {
@@ -33,39 +29,26 @@ namespace ML_Annotation_Tool.Views
                 }
             }
         }
+
         private void OnCanvasPointerPressed(object sender, PointerPressedEventArgs e)
         { 
             if (sender is Canvas myCanvas)
             {
                 if (myCanvas.DataContext is MainWindowViewModel vm) {
-                    var visual = (IVisual)myCanvas;
-
                     startPoint = e.GetPosition(myCanvas);
                 }
             }
         }
+
         private void OnCanvasPointerReleased(object sender, PointerReleasedEventArgs e)
         {
-            if (sender is Canvas myCanvas)
-            {
-                if (myCanvas.DataContext is MainWindowViewModel vm)
-                {
-                    var visual = (IVisual)myCanvas;
-                    endPoint = e.GetPosition(myCanvas);
+            myCanvas = sender as Canvas;
+            myCanvasDataContext = myCanvas.DataContext as MainWindowViewModel;
 
-                    int height = (int)myCanvas.Height;
-                    int width = (int)myCanvas.Width;
-                    
-                    if (endPoint.X >= 0 && endPoint.Y >= 0 && endPoint.X <= width && endPoint.Y <= height)
-                    {
-                        vm.AddAnnotation(startPoint, endPoint);
+            //startPoint was defined in OnCanvasPointerPressed
+            endPoint = e.GetPosition((myCanvas as IVisual));
 
-                    } else
-                    {
-                        var k = new ErrorMessageBox("Please draw the box on the image itself. Releasing the mouse off of the box will not draw an image.");
-                    }
-                }
-            }
+            myCanvasDataContext.AddAnnotation(startPoint, endPoint, myCanvas.Height, myCanvas.Width);
         }
 
     }

@@ -1,7 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:ML_Annotation_Tool"
-             x:Class="ML_Annotation_Tool.App">
+             xmlns:local="using:FishSenseLiteGUI"
+             x:Class="FishSenseLiteGUI.App">
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>

@@ -1,10 +1,9 @@
-﻿using ML_Annotation_Tool.ViewModels;
+﻿using FishSenseLiteGUI.ViewModels;
 using System;
-using System.ComponentModel.Design;
 using System.Windows.Input;
 
-namespace ML_Annotation_Tool.Commands
-{ 
+namespace FishSenseLiteGUI.Commands
+{
     /* Annotation Descriptor: The first line stored in the SQLite database itself.
      * Denotes whether the annotation is a (0) Head Annotation, (1) Tail Annotation,
      * or (2) Body Annotation, each corresponding to their respective initials.

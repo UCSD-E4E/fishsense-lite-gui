@@ -1,33 +1,34 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
-using ML_Annotation_Tool.Data;
-using ML_Annotation_Tool.ViewModels;
+using FishSenseLiteGUI.Data;
+using FishSenseLiteGUI.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Net;
-using static ML_Annotation_Tool.Models.indices;
+using static FishSenseLiteGUI.Models.AnnotationIndices;
 
-namespace ML_Annotation_Tool.Models
+namespace FishSenseLiteGUI.Models
 {
     // Enum to better describe indices to the Annotation Data stored in the database.
-    enum indices {
-        ANNOTATIONDESCRIPTOR = 0,
-        IMAGEPATH = 1,
-        TOPLEFTX = 2,
-        TOPLEFTY = 3,
-        BOTTOMRIGHTX = 4,
-        BOTTOMRIGHTY = 5,
+    enum AnnotationIndices {
+        AnnotationDescriptorIndex = 0,
+        ImagePathIndex = 1,
+        TopLeftXIndex = 2,
+        TopLeftYIndex = 3,
+        BottomRightXIndex = 4,
+        BottomRightYIndex = 5,
     };
-    /* This class is the bulk of the model layer, and it connects the data layer to the viewmodel
-     * layer. It stores a Database object, the bitmaps of the images themselves (using a custom
-     * EditableBitmap class), and allows users to update the UI with new images, add annotations,
-     * add images, delete images, and move between images.
-     * 
-     */
-    public class DB_Accessor
+
+    /// <summary>
+    /// This class is the bulk of the model layer, and it connects the data layer to the viewmodel
+    /// layer. It stores a Database object, the bitmaps of the images themselves (using a custom
+    /// EditableBitmap class), and allows users to update the UI with new images, add annotations,
+    /// add images, delete images, and move between images
+    /// </summary>
+
+    public class DatabaseModel
     {
         // Private instance variables that store the necessary connections to access data and invoke methods.
         private Database db;
@@ -38,25 +39,27 @@ namespace ML_Annotation_Tool.Models
         private ObservableCollection<Bitmap> bitmaps;
         private ObservableCollection<string> fullPaths;
 
-        private int WindowHeight;
-        private int WindowWidth;
+        private int windowHeight;
+        private int windowWidth;
 
-        private int _imageIndex;
+        private const int HeightOfTabControl = 100;
+
+        private int imageIndex;
         public int ImageIndex
         {
-            get { return _imageIndex; }
+            get { return imageIndex; }
             set 
             { 
-                _imageIndex = value;
+                imageIndex = value;
                 // Notifies UI that the image index has been updated.
                 ImageUpdated();                
             }
         }
 
-        public Canvas AnnotationCanvas { get; private set; }
+        public Canvas AnnotationCanvas { get; set; }
 
         // Creates database object using passed in path, and stores view model to access data.
-        public DB_Accessor(string path, MainWindowViewModel source)
+        public DatabaseModel(string path, MainWindowViewModel source)
         {
             db = new Database(path);
             this.source = source;
@@ -64,7 +67,7 @@ namespace ML_Annotation_Tool.Models
             fullPaths = new ObservableCollection<string>();
 
             // For now, initializes image index to 0. Will later order list in alphabetical order.
-            _imageIndex = 0;   
+            imageIndex = 0;   
         }
         public void ImageUpdated()
         {
@@ -98,15 +101,15 @@ namespace ML_Annotation_Tool.Models
             string AnnotationDescriptor;
             foreach (string[] data in db.RequestAnnotationsForPath(Path.GetFileName(fullPaths[ImageIndex])))
             {
-                int startPointX = (int)(Convert.ToDouble(data[(int)TOPLEFTX]) / OriginalImage.Width * getWidth(WindowHeight, WindowWidth));
-                int startPointY = (int)(Convert.ToDouble(data[(int)TOPLEFTY]) / OriginalImage.Height * getHeight(WindowHeight, WindowWidth));
+                int startPointX = (int)(Convert.ToDouble(data[(int)TopLeftXIndex]) / OriginalImage.Width * getWidth(windowHeight, windowWidth));
+                int startPointY = (int)(Convert.ToDouble(data[(int)TopLeftYIndex]) / OriginalImage.Height * getHeight(windowHeight, windowWidth));
                 Avalonia.Point startPoint = new Avalonia.Point(startPointX, startPointY);
 
-                int endPointX = (int)(Convert.ToDouble(data[(int)BOTTOMRIGHTX]) /  OriginalImage.Width * getWidth(WindowHeight, WindowWidth));
-                int endPointY = (int)(Convert.ToDouble(data[(int)BOTTOMRIGHTY]) / OriginalImage.Height * getHeight(WindowHeight, WindowWidth));
+                int endPointX = (int)(Convert.ToDouble(data[(int)BottomRightXIndex]) /  OriginalImage.Width * getWidth(windowHeight, windowWidth));
+                int endPointY = (int)(Convert.ToDouble(data[(int)BottomRightYIndex]) / OriginalImage.Height * getHeight(windowHeight, windowWidth));
                 Avalonia.Point endPoint = new Avalonia.Point(endPointX, endPointY);
 
-                AnnotationDescriptor = data[(int)ANNOTATIONDESCRIPTOR];
+                AnnotationDescriptor = data[(int)AnnotationDescriptorIndex];
                 if (AnnotationDescriptor == "0")
                 {
                     AddRectangle(startPoint, endPoint, Avalonia.Media.Brushes.Red);
@@ -217,48 +220,32 @@ namespace ML_Annotation_Tool.Models
 
         public int getHeight(double windowHeight, double windowWidth)
         {
-            double ProportionToDisplay = 0.0;
-            this.WindowWidth = (int)windowWidth;
-            this.WindowHeight = (int)windowHeight;
-            if (OriginalImage.Height > (windowHeight - 100) || OriginalImage.Width > windowWidth)
-            {
-                if ((double)OriginalImage.Height / (windowHeight - 100) > (double)OriginalImage.Width / windowWidth)
-                {
-                    ProportionToDisplay = (double)OriginalImage.Height / (windowHeight - 100);
-                }
-                else
-                {
-                    ProportionToDisplay = (double)OriginalImage.Width / windowWidth;
-                }
-                return (int)(OriginalImage.Height / ProportionToDisplay);
-            }
-            else
-            {
-                return OriginalImage.Height;
-            }
+            return (int)(OriginalImage.Height * GetProportionToDisplay(windowHeight, windowWidth));
         }
 
         public int getWidth(double windowHeight, double windowWidth)
         {
+            return (int)(OriginalImage.Width * GetProportionToDisplay(windowHeight, windowWidth) );
+        }
+
+        private double GetProportionToDisplay(double windowHeight, double windowWidth)
+        {
             double ProportionToDisplay = 0.0;
-            this.WindowWidth = (int)windowWidth;
-            this.WindowHeight = (int)windowHeight;
-            // 100 is the height of the tab bar at the top, allowing us to compare it to the space actually available for the image.
-            if (OriginalImage.Height > (windowHeight - 100) || OriginalImage.Width > windowWidth)
+            if (OriginalImage.Height > (windowHeight - HeightOfTabControl) || OriginalImage.Width > windowWidth)
             {
                 if ((double)OriginalImage.Height / (windowHeight - 100) > (double)OriginalImage.Width / windowWidth)
                 {
-                    ProportionToDisplay = (double)OriginalImage.Height / (windowHeight - 100);
+                    ProportionToDisplay = (double)(windowHeight - 100) / OriginalImage.Height;
                 }
                 else
                 {
-                    ProportionToDisplay = (double)OriginalImage.Width / windowWidth;
+                    ProportionToDisplay = (double)windowWidth / OriginalImage.Width;
                 }
-                return (int)(OriginalImage.Width / ProportionToDisplay);
+                return ProportionToDisplay;
             }
             else
             {
-                return OriginalImage.Width;
+                return 1;
             }
         }
 
@@ -311,8 +298,8 @@ namespace ML_Annotation_Tool.Models
         internal void AddCanvas(Canvas annotationCanvas, int windowHeight, int windowWidth)
         {
             this.AnnotationCanvas = annotationCanvas;
-            this.WindowHeight = windowHeight;
-            this.WindowWidth = windowWidth;
+            this.windowHeight = windowHeight;
+            this.windowWidth = windowWidth;
         }
     }
 }

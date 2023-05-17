@@ -1,12 +1,8 @@
-﻿using ML_Annotation_Tool.ViewModels;
+﻿using FishSenseLiteGUI.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ML_Annotation_Tool.Commands
+namespace FishSenseLiteGUI.Commands
 {
     /* Command to clear images. Linked to XAML button on page 2.
     *  1) Clears images from ObservableCollection.
@@ -24,7 +20,7 @@ namespace ML_Annotation_Tool.Commands
         public void Execute(object? parameter)
         {
             source.SelectedTabIndex = 0;
-            source.accessor.ClearImages();
+            source.databaseModel.ClearImages();
 
             source.SecondPageEnabled = false;
             source.ThirdPageEnabled = false;

@@ -3,7 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.ReactiveUI;
 using System;
 
-namespace ML_Annotation_Tool
+namespace FishSenseLiteGUI
 {
     internal class Program
     {

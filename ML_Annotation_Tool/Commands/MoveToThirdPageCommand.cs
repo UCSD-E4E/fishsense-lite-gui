@@ -1,14 +1,8 @@
-﻿using Avalonia.Controls;
-using ML_Annotation_Tool.ViewModels;
+﻿using FishSenseLiteGUI.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ML_Annotation_Tool.Commands
+namespace FishSenseLiteGUI.Commands
 {
     /* Command to move to the next page. 
      * Currently only linked to a button on the xaml of Page 2 to move to page 3.
@@ -22,7 +16,7 @@ namespace ML_Annotation_Tool.Commands
             return true;
         }
 
-        public async void Execute(object? parameter)
+        public void Execute(object? parameter)
         {
             source.SelectedTabIndex += 1;
             source.SelectedTabIndex %= 3;

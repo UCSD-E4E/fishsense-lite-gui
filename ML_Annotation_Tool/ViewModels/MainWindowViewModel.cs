@@ -1,162 +1,152 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Media;
-using ML_Annotation_Tool.Commands;
-using ML_Annotation_Tool.Models;
+using FishSenseLiteGUI.Commands;
+using FishSenseLiteGUI.Models;
+using FishSenseLiteGUI.SupplementaryClasses;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Text;
 using System.Windows.Input;
 
-namespace ML_Annotation_Tool.ViewModels
+namespace FishSenseLiteGUI.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
         public string FileExplorerButtonText => "Choose directory";
 
         // Index for the tab of the UI that is displayed. 
-        private int _selectedTabIndex;
+        //[ObservableObject]
+        //[NotifyPropertyChangedFor(nameof(selectedTabIndex))]
+        private int selectedTabIndex;
         public int SelectedTabIndex
         {
-            get { return _selectedTabIndex; }
+            get { return selectedTabIndex; }
             set
             {
-                _selectedTabIndex = value;
+                selectedTabIndex = value;
                 OnPropertyChanged(nameof(SelectedTabIndex));
             }
         }
 
-        private ObservableCollection<string> _fileNames;
+        private ObservableCollection<string> fileNames;
         public ObservableCollection<string> FileNames
         {
-            get => _fileNames;
+            get => fileNames;
             set
             {
-                _fileNames = value;
+                fileNames = value;
                 OnPropertyChanged();
             }
         }
-        private string _pathForImageToShow;
+
+        private string pathForImageToShow;
         public string PathForImageToShow
         {
-            get => _pathForImageToShow;
+            get => pathForImageToShow;
             set
             {
-                _pathForImageToShow = value;
+                pathForImageToShow = value;
                 if (NextPage != null)
                 {
                     NextPage.Execute("");
                 }
             }
         }
+
         // Contains Avalonia.Media.Imaging.Bitmap that will be displayed in UI
-        private Avalonia.Media.Imaging.Bitmap _imageToShow;
+        private Avalonia.Media.Imaging.Bitmap imageToShow;
         public Avalonia.Media.Imaging.Bitmap ImageToShow
         {
-            get => _imageToShow;
+            get => imageToShow;
             set
             {
-                _imageToShow = value;
+                imageToShow = value;
                 OnPropertyChanged(nameof(ImageToShow));
                 OnPropertyChanged(nameof(ImageHeight));
                 OnPropertyChanged(nameof(ImageWidth));
             }
         }
 
-        // Another method to display images properly in xaml. Height and Width is necessary to add annotations using the values of 
-        // the exact pixels of the image. Figure out why the WindowState.Maximized binding doesn't work (Window doesn't start maximized)
-
-        private WindowState _state;
+        private WindowState state;
         public WindowState State
         {
-            get => _state;
+            get => state;
             set
             {
-                if (_state != value)
+                if (state != value)
                 {
-                    _state = value;
+                    state = value;
                     OnPropertyChanged();
                 }
             }
         }
-        private double _windowHeight;
+
+        private double windowHeight;
         public double WindowHeight
-       {
-           get => _windowHeight;
-           set
-           {
-               if (_windowHeight != value )
-               {
-                   _windowHeight = value;
-                   OnPropertyChanged();
-                   OnPropertyChanged(nameof(ImageHeight));
-                   OnPropertyChanged(nameof(ImageWidth));
-               }
-           }
-       }
-        private int _imageHeight;
-        public int ImageHeight
         {
-            get
-            {
-                if (accessor != null)
-                {
-                    return accessor.getHeight(WindowHeight, WindowWidth);
-                } 
-                else
-                {
-                    return 0;
-                }
-            } 
+            get => windowHeight;
             set
             {
-                _imageHeight = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _windowWidth;
-        public double WindowWidth
-        {
-            get => _windowWidth;
-            set
-            {
-                if (_windowWidth != value )
+                if (windowHeight != value )
                 {
-                    _windowWidth = value;
+                    windowHeight = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ImageHeight));
                     OnPropertyChanged(nameof(ImageWidth));
                 }
             }
         }
-        private int _imageWidth;
-        public int ImageWidth
+
+        public int ImageHeight
         {
             get
             {
-                if (accessor != null)
+                if (databaseModel != null)
                 {
-                    return accessor.getWidth(WindowHeight, WindowWidth);
+                    return databaseModel.getHeight(WindowHeight, WindowWidth);
                 } 
                 else
                 {
                     return 0;
                 }
             }
+        }
+
+        private double windowWidth;
+        public double WindowWidth
+        {
+            get => windowWidth;
             set
             {
-                _imageWidth = value;
-                OnPropertyChanged(nameof(ImageWidth));
+                if (windowWidth != value )
+                {
+                    windowWidth = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ImageHeight));
+                    OnPropertyChanged(nameof(ImageWidth));
+                }
             }
         }
 
-        private readonly string _sentenceOne = "This app is designed to allow you to annotate image features" +
+        public int ImageWidth
+        {
+            get
+            {
+                if (databaseModel != null)
+                {
+                    return databaseModel.getWidth(WindowHeight, WindowWidth);
+                } 
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+
+        private const string sentenceOne = "This app is designed to allow you to annotate image features" +
             " and annotate them in a YOLO format. ";
-        private readonly string _sentenceTwo = "Press the button below to input the directory that contains" +
+        private const string sentenceTwo = "Press the button below to input the directory that contains" +
             " the files which you want to display. ";
-        private readonly string _sentenceThree = "Later, you will have an option to choose where you wish to" +
+        private const string sentenceThree = "Later, you will have an option to choose where you wish to" +
             " start viewing the files, and which files to display from the directory itself.";
 
         // C# documentation recommended using StringBuilder to represent larger strings, and this is initialized in the 
@@ -164,53 +154,59 @@ namespace ML_Annotation_Tool.ViewModels
         public StringBuilder Description { get; set; }
 
         // Booleans that control the use of certain buttons and whether or not users can view the 2nd or 3rd tabs in the app.
-
-        private bool _secondPageEnabled = false;
+        private bool secondPageEnabled = false;
         public bool SecondPageEnabled
         {
-            get { return _secondPageEnabled; }
+            get { return secondPageEnabled; }
             set
             {
-                _secondPageEnabled = value;
+                secondPageEnabled = value;
                 OnPropertyChanged(nameof(SecondPageEnabled));
             }
         }
 
-        private bool _thirdPageEnabled = false;
+        private bool thirdPageEnabled = false;
         public bool ThirdPageEnabled
         {
-            get { return _thirdPageEnabled; }
+            get { return thirdPageEnabled; }
             set
             {
-                _thirdPageEnabled = value;
+                thirdPageEnabled = value;
                 OnPropertyChanged(nameof(ThirdPageEnabled));
             }
         }
 
         // Descriptor that is updated by the SwitchAnntationDescriptor.cs class.
-        private int _annotationDescriptor;
+        private int annotationDescriptor;
         public int AnnotationDescriptor
         {
-            get { return _annotationDescriptor; }
+            get { return annotationDescriptor; }
             set
             {
-                _annotationDescriptor= value;
+                annotationDescriptor = value;
                 OnPropertyChanged(nameof(AnnotationDescriptor));
             }
         }
+
         // Each of these commands are binded to buttons and events in the UI and forms a way to pass data between the layers and the UI.
         public ICommand FileExplorer { get; }
+
         public ICommand NextPage { get; }
+
         public ICommand SwitchImage { get; }
+
         public ICommand ClearImages { get; }
 
         // Individual commands that switch the Annotation Descriptor for following annotations.
         // H = Head = Red, B = Body = Black, T = Tail = Green.
         public ICommand HeadAnnotationDescriptor { get; }
+
         public ICommand TailAnnotationDescriptor { get; }
+
         public ICommand BodyAnnotationDescriptor { get; }
 
-        public DB_Accessor accessor;
+        public DatabaseModel databaseModel;
+
         public MainWindowViewModel()
         {
             // Initialize Window Size
@@ -222,17 +218,17 @@ namespace ML_Annotation_Tool.ViewModels
 
             // Create Description String.
             Description = new StringBuilder();
-            Description.Append(_sentenceOne);
-            Description.Append(_sentenceTwo);
-            Description.Append(_sentenceThree);
+            Description.Append(sentenceOne);
+            Description.Append(sentenceTwo);
+            Description.Append(sentenceThree);
 
             // Initialize the private Observable Collections
-            _fileNames = new ObservableCollection<string>();
+            fileNames = new ObservableCollection<string>();
             
             // Create indexes.
             SelectedTabIndex = 0;
             PathForImageToShow = String.Empty;
-
+                
             // Initialize commands.
             FileExplorer = new FileExplorerCommand(this);
             NextPage = new MoveToThirdPageCommand(this);
@@ -243,21 +239,33 @@ namespace ML_Annotation_Tool.ViewModels
             BodyAnnotationDescriptor = new SwitchAnnotationDescriptorCommand(this, "B");
         }
 
-        public void InitializeConnection(string path)
+        public void InitializeModelLayer(string path)
         {
             // Model layer.
-            accessor = new DB_Accessor(path, this);
+            databaseModel = new DatabaseModel(path, this);
         }
         
-        public void AddAnnotation(Avalonia.Point startPoint, Avalonia.Point endPoint)
+        public void AddAnnotation(Avalonia.Point startPoint, Avalonia.Point endPoint, double canvasHeight, double canvasWidth)
         {
             // This method is called from the code behind, and this method just routes the data from the code behind to the model.
-            accessor.AddAnnotation(AnnotationDescriptor, startPoint, endPoint, ImageWidth, ImageHeight);
+            if (endPoint.X >= 0 && endPoint.Y >= 0 && endPoint.X <= canvasWidth && endPoint.Y <= canvasHeight)
+            {
+                databaseModel.AddAnnotation(AnnotationDescriptor, 
+                                       startPoint, 
+                                       endPoint, 
+                                       Convert.ToInt32(Math.Round(canvasWidth)), 
+                                       Convert.ToInt32(Math.Round(canvasHeight)));
+            } 
+            else
+            {
+                ErrorMessageBox.Show("Please draw the box on the image itself. Releasing the mouse off of the box will not draw an image.");
+            }
+            
         }
-        public void AddFileName(string imagePath)
+        public void AddImage(string imagePath)
         {
             FileNames.Add(imagePath);
-            accessor.AddImage(imagePath);
+            databaseModel.AddImage(imagePath);
         }
         internal void ImageToShowEdited(Avalonia.Media.Imaging.Bitmap newImage)
         {
@@ -270,12 +278,12 @@ namespace ML_Annotation_Tool.ViewModels
             // will be added in the future. "" doesn't share any of the same image path names and so it will
             // choose the first image for its 
 
-            accessor.ChooseFirstImage(PathForImageToShow);
+            databaseModel.ChooseFirstImage(PathForImageToShow);
         }
 
-        internal void InitializeCanvas(Canvas annotationCanvas)
+        public void InitializeCanvas(Canvas annotationCanvas)
         {
-            accessor.AddCanvas(annotationCanvas, (int)WindowHeight, (int)WindowWidth);
+            databaseModel.AddCanvas(annotationCanvas, (int)WindowHeight, (int)WindowWidth);
         }
     }
 }

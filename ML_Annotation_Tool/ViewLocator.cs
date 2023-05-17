@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using ML_Annotation_Tool.ViewModels;
+using FishSenseLiteGUI.ViewModels;
 using System;
 
-namespace ML_Annotation_Tool
+namespace FishSenseLiteGUI
 {
     public class ViewLocator : IDataTemplate
     {
@@ -22,9 +22,7 @@ namespace ML_Annotation_Tool
             }
         }
 
-        public bool Match(object data)
-        {
-            return data is ViewModelBase;
-        }
+        public bool Match(object data) => 
+                    data is ViewModelBase;
     }
 }

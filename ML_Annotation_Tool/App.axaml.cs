@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using ML_Annotation_Tool.ViewModels;
-using ML_Annotation_Tool.Views;
+using FishSenseLiteGUI.ViewModels;
+using FishSenseLiteGUI.Views;
 
-namespace ML_Annotation_Tool
+namespace FishSenseLiteGUI
 {
     public partial class App : Application
     {

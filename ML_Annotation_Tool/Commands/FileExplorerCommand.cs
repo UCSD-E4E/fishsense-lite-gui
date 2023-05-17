@@ -1,18 +1,13 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media.Imaging;
-using Avalonia.Threading;
-using ML_Annotation_Tool.Models;
-using ML_Annotation_Tool.ViewModels;
+using FishSenseLiteGUI.SupplementaryClasses;
+using FishSenseLiteGUI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace ML_Annotation_Tool.Commands
+namespace FishSenseLiteGUI.Commands
 {
     /* Command to open file explorer to choose directory that contains images.
      * Checks to make sure images added aren't corrupted, and makes sure the image can make a Bitmap
@@ -36,16 +31,16 @@ namespace ML_Annotation_Tool.Commands
             // to choose another folder that actually contains valid images.
             bool imageAdded = false;
             Bitmap testImage;
-            if (result != null)
+            if (!String.IsNullOrEmpty(result))
             {
                 // Clear previous images. There can only be one database used at a time.
-                if (source.accessor != null)
+                if (source.databaseModel != null)
                 {
-                    source.accessor.ClearImages();
+                    source.databaseModel.ClearImages();
                 }
 
                 // Open connetion to SQLite database using the ViewModel's method.
-                source.InitializeConnection(result);
+                source.InitializeModelLayer(result);
 
                 List<string> paths = new List<string>(Directory.GetFiles(result));
                 paths.Sort();
@@ -61,12 +56,12 @@ namespace ML_Annotation_Tool.Commands
                             // Tests whether the image can be turned into a bitmap. If this works,
                             // the code moving forward assumes the image is a valid one and can be added.
                             testImage = new Bitmap(path);
-                            source.AddFileName(path);
+                            source.AddImage(path);
                             imageAdded = true;
                         }
                         catch (Exception ex )
                         {
-                            var w = new ErrorMessageBox("Attempted to add a corrupted file named " + path);
+                            ErrorMessageBox.Show("Attempted to add a corrupted file named " + path);
                         }
                     } 
                 }

@@ -2,16 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:local="clr-namespace:ML_Annotation_Tool.Views"
-		xmlns:models="clr-namespace:ML_Annotation_Tool.Models;assembly=ML_Annotation_Tool"
+		xmlns:local="clr-namespace:FishSenseLiteGUI.Views"
+		xmlns:models="clr-namespace:FishSenseLiteGUI.Models;assembly=FishSenseLiteGUI"
 		xmlns:converters="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Markup"
 		xmlns:ia="clr-namespace:Avalonia.Interactivity;assembly=Avalonia.Interactivity"
-		xmlns:data="clr-namespace:ML_Annotation_Tool.Data"
+		xmlns:data="clr-namespace:FishSenseLiteGUI.Data"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
 		MinHeight="100" MinWidth="0" 
-        x:Class="ML_Annotation_Tool.Views.MainWindow"  Width="{Binding WindowWidth, Mode=TwoWay}" Height="{Binding WindowHeight, Mode=TwoWay}"
+        x:Class="FishSenseLiteGUI.Views.MainWindow"  Width="{Binding WindowWidth, Mode=TwoWay}" Height="{Binding WindowHeight, Mode=TwoWay}"
         Icon="/Assets/FredTheFish.ico" WindowState="{Binding State, Mode=TwoWay}" 
-        Title="ML_Annotation_Tool" Name="Window">
+        Title="FishSense Lite GUI" Name="Window">
 
 
 	<TabControl SelectedIndex="{Binding Path=SelectedTabIndex}" TabStripPlacement="Top" VerticalAlignment="Top" 
