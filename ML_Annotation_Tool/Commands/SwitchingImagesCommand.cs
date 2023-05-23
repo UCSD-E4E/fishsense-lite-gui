@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls.Primitives;
-using FishSenseLiteGUI.ViewModels;
+﻿using FishSenseLiteGUI.ViewModels;
 using System;
 using System.Windows.Input;
 
