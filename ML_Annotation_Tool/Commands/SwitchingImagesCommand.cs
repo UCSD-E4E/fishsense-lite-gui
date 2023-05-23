@@ -1,17 +1,19 @@
-﻿using FishSenseLiteGUI.ViewModels;
+﻿using Avalonia.Controls.Primitives;
+using FishSenseLiteGUI.ViewModels;
 using System;
 using System.Windows.Input;
 
 namespace FishSenseLiteGUI.Commands
 {
-    /* This command binds to 2 hotkeys on the third page. The user can move to the 
-     * next image using 'A' and 'D' to move to the previous image and next image respectively
-     * The command obviously cycles, but this behavior is taken care of at the DatabaseModel class
-     * This command simply notifies the model that it should move to the next class rather than 
-     * containing any real logic.
-     * 
-     * Both the A and D hotkeys link to the same command.
-     */
+    /// <summary>
+    /// Purpose: This command allows users to switch between images using the 'A' and 'D' hotkeys for 
+    ///          left and right respectively. 
+    ///          
+    /// Note: This command can only be used from the third page. Upon moving right or left, the Viewmodel's
+    ///       SelectedImageIndex property is incremented, which updates the Image displayed and all relevant
+    ///       properties. To avoid creating multiple commands, both 'A' and 'D' hotkeys access the same instance,
+    ///       where they differ only by the keyPressed command parameter passed in from the xaml.
+    /// </summary>
     public class SwitchingImagesCommand : ICommand
     {
         public event EventHandler? CanExecuteChanged;
@@ -21,17 +23,24 @@ namespace FishSenseLiteGUI.Commands
             return true;
         }
 
-        // keyPressed is a CommandParameter supplied from the XAMl
         public void Execute(object? keyPressed)
         {
             if (!String.IsNullOrEmpty(keyPressed.ToString()))
             {
                 if (keyPressed.ToString() == "D")
                 {
-                    source.databaseModel.NextImage();
-                } else if (keyPressed.ToString() == "A")
+                    source.SelectedImageIndex = (source.SelectedImageIndex + 1) % source.FileNames.Count;
+                } 
+                else if (keyPressed.ToString() == "A")
                 {
-                    source.databaseModel.PreviousImage();                   
+                    if (source.SelectedImageIndex == 0)
+                    {
+                        source.SelectedImageIndex = source.FileNames.Count - 1;
+                    }                  
+                    else
+                    {
+                        source.SelectedImageIndex--;
+                    }
                 }
             }
         }

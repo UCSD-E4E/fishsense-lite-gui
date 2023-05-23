@@ -16,7 +16,6 @@ namespace FishSenseLiteGUI.Views
         public MainWindow()
         {
             InitializeComponent();
-            Window.WindowState = WindowState.Maximized;
         }
 
         private void CanvasInitialized(object sender, VisualTreeAttachmentEventArgs e)
@@ -46,9 +45,9 @@ namespace FishSenseLiteGUI.Views
             myCanvasDataContext = myCanvas.DataContext as MainWindowViewModel;
 
             //startPoint was defined in OnCanvasPointerPressed
-            endPoint = e.GetPosition((myCanvas as IVisual));
+            endPoint = e.GetPosition(myCanvas);
 
-            myCanvasDataContext.AddAnnotation(startPoint, endPoint, myCanvas.Height, myCanvas.Width);
+            myCanvasDataContext.AddAnnotation(startPoint, endPoint);
         }
 
     }

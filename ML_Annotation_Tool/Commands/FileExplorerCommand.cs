@@ -9,11 +9,13 @@ using System.Windows.Input;
 
 namespace FishSenseLiteGUI.Commands
 {
-    /* Command to open file explorer to choose directory that contains images.
-     * Checks to make sure images added aren't corrupted, and makes sure the image can make a Bitmap
-     * Otherwise, notifies user that the image is corrupted.
-     * Moves user to next page. 
-     */
+    /// <summary>
+    /// Purpose: ICommand to open Asynchronously File Explorer and allow user to select a directory.
+    /// 
+    /// Notes:  Directory should contain images to be displayed for annotations.
+    ///         Raises Error if directory contains corrupted images.
+    ///         Automatically moves to next page.
+    /// </summary>
     public class FileExplorerCommand : ICommand
     {
         public bool CanExecute(object? parameter)
@@ -27,39 +29,30 @@ namespace FishSenseLiteGUI.Commands
             var openFolderDialog = new OpenFolderDialog();
             var result = await openFolderDialog.ShowAsync(new Window());
 
-            // Boolean used to check whether program should move on to the next page, or force the user
-            // to choose another folder that actually contains valid images.
+            // Stores if the program should allow the user to access page 2, which can only occur if valid images are added.
             bool imageAdded = false;
             Bitmap testImage;
             if (!String.IsNullOrEmpty(result))
             {
-                // Clear previous images. There can only be one database used at a time.
-                if (source.databaseModel != null)
-                {
-                    source.databaseModel.ClearImages();
-                }
-
-                // Open connetion to SQLite database using the ViewModel's method.
-                source.InitializeModelLayer(result);
+                // Initializes model layer. If model layer already exists, resets model layer for the most recently chosen directory.
+                this.source.DirectoryChosen(result);
 
                 List<string> paths = new List<string>(Directory.GetFiles(result));
                 paths.Sort();
-                // Should probably double check if .webp is supported by Avalonia
-                List<string> AcceptableExtensions = new List<string> { ".png", ".jpeg", ".jpg", ".bmp", ".gif", ".webp"};
-                
+
+                List<string> AcceptableExtensions = new List<string> { ".png", ".jpeg", ".jpg", ".bmp", ".gif"};
                 foreach ( string path in paths )
                 {
                     if ( AcceptableExtensions.Contains(Path.GetExtension(path)) )
                     {
                         try
                         {
-                            // Tests whether the image can be turned into a bitmap. If this works,
-                            // the code moving forward assumes the image is a valid one and can be added.
+                            // If a bitmap can be created, assume image is not corrupted.
                             testImage = new Bitmap(path);
                             source.AddImage(path);
                             imageAdded = true;
                         }
-                        catch (Exception ex )
+                        catch 
                         {
                             ErrorMessageBox.Show("Attempted to add a corrupted file named " + path);
                         }
@@ -68,9 +61,14 @@ namespace FishSenseLiteGUI.Commands
 
                 if (imageAdded)
                 {
-                    // Moves to next page, and enables next page.
-                    source.SelectedTabIndex += 1;
+                    source.SelectedTabIndex = 1;
                     source.SecondPageEnabled = true;
+                } 
+                else
+                {
+                    ErrorMessageBox.Show("No images added. This is the case if (a) the directory chosen had no images within it, or (b)" +
+                        "the images within the directory were all incompatible with the program. Please ensure the images are of the types" +
+                        " .png, .jpg, .jpeg, .bmp, or .gif.");
                 }
             }
         }

@@ -4,11 +4,12 @@ using System.Windows.Input;
 
 namespace FishSenseLiteGUI.Commands
 {
-    /* Command to clear images. Linked to XAML button on page 2.
-    *  1) Clears images from ObservableCollection.
-    *  2) Disables pages 2 and 3.
-    *  3) Allows user to rechoose directory and add new directory.
-    */
+    /// <summary>
+    /// Purpose: Command that clears images. Accessed by XAML Button "Delete Images" on Page 2 of the Tab Control.
+    /// 
+    /// Note: Will also disable pages 2 and 3, clears the past images, and will force the user to choose another 
+    ///       directory before using the rest of the application.
+    /// </summary>
     public class ClearImagesCommand : ICommand
     {
         public event EventHandler? CanExecuteChanged;
@@ -20,8 +21,7 @@ namespace FishSenseLiteGUI.Commands
         public void Execute(object? parameter)
         {
             source.SelectedTabIndex = 0;
-            source.databaseModel.ClearImages();
-
+            source.SelectedImageIndex = -1;
             source.SecondPageEnabled = false;
             source.ThirdPageEnabled = false;
         }

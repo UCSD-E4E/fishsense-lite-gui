@@ -4,13 +4,18 @@ using System.Windows.Input;
 
 namespace FishSenseLiteGUI.Commands
 {
-    /* Annotation Descriptor: The first line stored in the SQLite database itself.
-     * Denotes whether the annotation is a (0) Head Annotation, (1) Tail Annotation,
-     * or (2) Body Annotation, each corresponding to their respective initials.
-     * 
-     * This command is tied to hotkeys on Page 3. Pressing each initial will immediately 
-     * execute its command and ensure users can draw their rectangles.
-     */
+    /// <summary>
+    /// Purpose: Allows user to choose different colors based on segment of the object being 
+    ///          annotated. 
+    ///  
+    /// Note: AnnotationDescriptor is the first column of the SQLite Database, and is described by
+    ///       the following relationship:
+    ///             0 -- Head Annotation -- Red
+    ///             1 -- Tail Annotation -- Green
+    ///             2 -- Body Annotation -- Black
+    ///       This command can only be used from page 3 on the 'H', 'T', and 'B' hotkeys. If the user
+    ///       does not choose a specific annotation, Head/Red/0 will be chosen as the default descriptor.
+    /// </summary>
     public class SwitchAnnotationDescriptorCommand :ICommand
     {
         MainWindowViewModel source;

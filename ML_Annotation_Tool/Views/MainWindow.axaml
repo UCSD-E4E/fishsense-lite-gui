@@ -37,11 +37,10 @@
 				<TextBlock Grid.Row="0" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Center"
 					Text="Please select the image you wish to begin with; if there is no specific image you wish to start with, the viewer will display images alphabetically."></TextBlock>
 					<ListBox Grid.Row="1" 
-						  Margin="6 30 6 6" MaxWidth="800" Items="{Binding FileNames}" SelectedItem="{Binding PathForImageToShow}"/>
+						  Margin="6 30 6 6" MaxWidth="800" Items="{Binding FileNames}" SelectedItem="{Binding PathSelectedByListBox}"/>
 
 				<StackPanel Grid.Row="2">
 					<Button Command="{Binding ClearImages}" Content="Delete all images" IsEnabled="True" HorizontalAlignment="Left"/>
-					<Button Command="{Binding NextPage}" Content="Next Page" IsEnabled="True" HorizontalAlignment="Right"></Button>
 				</StackPanel>
 			</Grid>
 		</TabItem>
@@ -77,8 +76,8 @@
 							Command="{Binding ClearImages}"/>
 				</StackPanel>
 
-				<Image Grid.Row="0" Grid.Column="0"
-					   x:Name="DisplayedImage" Source="{Binding ImageToShow}" Width="{Binding ImageWidth}" Height="{Binding ImageHeight}"></Image>
+				<Image Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center"
+					   x:Name="DisplayedImage" Source="{Binding ImageToShow}" Width="{Binding DisplayWidth}" Height="{Binding DisplayHeight}"></Image>
 				
 				<Canvas Grid.Row="0" Grid.Column="0" Background="Transparent" ZIndex="1" x:Name="AnnotationCanvas"
 					    Height="{Binding Height, ElementName=DisplayedImage}" Width="{Binding Width, ElementName=DisplayedImage}"

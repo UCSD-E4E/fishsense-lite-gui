@@ -7,9 +7,9 @@ using System.Windows.Input;
 namespace FishSenseLiteGUI.SupplementaryClasses
 {
     /// <summary>
-    /// Purpose of class is to create a simple error box (similar to ErrorMessageBox in WPF).
+    /// Purpose: Displays simple error box (similar to ErrorMessageBox in WPF).
     /// 
-    /// Has no constructor, just a static method whose usage is ErrorMessageBox.Show("Error Message").
+    /// Note: Has no constructor, just a static method whose usage is ErrorMessageBox.Show("Error Message").
     /// </summary>
     public class ErrorMessageBox : Window
     {

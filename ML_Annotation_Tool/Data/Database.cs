@@ -4,31 +4,31 @@ using System.IO;
 
 namespace FishSenseLiteGUI.Data
 {
-    /* Class to interface with Data. This is the data layer.
-     * The data is stored in a SQLite database. All the data consists of the annotations.
-     * Each annotation is stored as a row in a table. The Data provided are 
-     * 
-     * | Annotation Key | Image Path | Top Left X | Top Left Y | Bottom Right X | Bottom Right Y |
-     * 
-     * Each of the X and Y coordinates are relative to the pixels of the image itself, and translated
-     * into screen coordinates separately
-     */
+    /// <summary>
+    /// Purpose: Class that interacts directly with the SQLite Database. This class will create a table
+    ///          if one has not been created, and read/write data from the database.
+    /// Notes: Each annotation is stored in the following format as a row in the Annotations table: 
+    /// 
+    ///           | Annotation Key | Image Path | Top Left X | Top Left Y | Bottom Right X | Bottom Right Y |
+    /// 
+    ///        Please note that the last 4 columns are pixel values relating to the image data itself, NOT
+    ///        the location as chosen on the display. These are entirely different data points and the database 
+    ///        itself has no knowledge of the screen at all (in order to ensure it is compliant with all screens
+    ///        the user may display the app from.
+    /// </summary>
     public class Database
     {
         private SQLiteConnection DatabaseConnection;
 
         public Database(string directoryPath)
         {
-            /* Because directories path differently in UNIX based systems and Windows, 
-             * This uses C#'s built in Path combiner. DirectoryPath is the directory chosen by the 
-             * File Explorer Command. */
+            // Path.Combine is operating system independent, and directoryPath is routed in from the FileExplorerCommand
             string DatabaseSQLiteFileName = Path.Combine(directoryPath, "DB_ImageAnnotations.db");
 
             string DatabaseConnectionString = "Data Source=" + DatabaseSQLiteFileName;
             DatabaseConnection = new SQLiteConnection(DatabaseConnectionString);
 
-            // This program works for adding annotations to previously annotated data, as well as 
-            // creating annotations for previously unannotated data.
+            // Users can annotate new data, or build off of previous annotations.
             if (!File.Exists(DatabaseSQLiteFileName))
             {
                 SQLiteConnection.CreateFile(DatabaseSQLiteFileName);
@@ -36,16 +36,13 @@ namespace FishSenseLiteGUI.Data
             CreateTableIfNeeded();
         } 
         
-        // RequestAnnotationsForPath returns all the annotations that have a certain path
-        // for their Image Path. This is primarily used for drawing the annotation boxes
-        // to the images as they are being loaded.
+        /// <summary>
+        /// Purpose: Returns annotation data stored in the database regarding an individual filename (imagePath)
+        /// </summary>
         public IEnumerable<string[]> RequestAnnotationsForPath(string imagePath)
         {
-            // This selects all rows from annotations, which is the name of the table
-            // The * is a wildcard character that represents the "all rows".
-             string query = "SELECT AnnotationDescriptor, ImagePath, TopLeftX, TopLeftY, BottomRightX, BottomRightY FROM annotations";
-            
-            // Whenever a query is made, a connection is opened, and then closed.
+            string query = "SELECT AnnotationDescriptor, ImagePath, TopLeftX, TopLeftY, BottomRightX, BottomRightY FROM annotations";
+
             OpenConnection();
 
             SQLiteCommand command = new SQLiteCommand(query, DatabaseConnection);
@@ -65,25 +62,19 @@ namespace FishSenseLiteGUI.Data
                         data[4] = result["BottomRightX"].ToString();
                         data[5] = result["BottomRightY"].ToString();
 
-                        // Yield is similar to its use in Python (and possible other languages).
-                        // The individual string array will be returned, and used as a container
-                        // for a foreach loop. This allows other parts of the program to just loop
-                        // through the function return without separately storing the entire return data.
                         yield return data;
                     }
                 }
             }
-            // Closing the connection is neessary to ensure no data loss, and other users can access the data
-            // at all times.
+            // Closing the connection is quick, and ensures no data loss.
             CloseConnection();
         }
         
-        /* This function is called to insert data directly into the SQLite database, and is generally called 
-         * when the user wants to add an annotation/draw the box.
-         * The DatabaseModel class will be the only class that calls this method, and provides the method 
-         * all the data that will be inserted into the table, allowing this class to have no knowledge of data
-         * beyond this class.
-         */
+        /// <summary>
+        /// Purpose: Inserts data directly into the SQLite database, specifically when the user wants to add an 
+        ///          annotation/draws a valid box on the GUI. This can only be called from the DatabaseModel class,
+        ///          as no other object has direct access to this class.
+        /// </summary>
         public async void InsertData(string annotationDescriptor, string imagePath, int topLeftX, int topLeftY, int bottomRightX, int bottomRightY)
         {
             // Insertion command. The @ signs are placeholders for individual datapoints.
@@ -93,13 +84,7 @@ namespace FishSenseLiteGUI.Data
             OpenConnection();
             SQLiteCommand command = new SQLiteCommand(InsertCommand, DatabaseConnection);
 
-            /* Adding parameters by value is a way to protect against SQL Injection.
-            * Directly concatenating strings can be a dangerous task because often users can 
-            * insert conditions that query all the data rather than the specific data they should have 
-            * access to. The way to protect against it is to ensure all the data will be encapsulated
-            * by quotation marks properly, hence the AddWithValue method.
-            * https://youtu.be/anTP-mgktiI?t=724
-            */
+            // Adding Parameters in this format protects against basic SQL injection tactics.
             command.Parameters.AddWithValue("@annotationDescriptor", annotationDescriptor);
             command.Parameters.AddWithValue("@imagePath", imagePath);
             command.Parameters.AddWithValue("@topLeftX", topLeftX);
@@ -112,10 +97,6 @@ namespace FishSenseLiteGUI.Data
             CloseConnection();
         }
 
-        /* This program works regardless of whether there are preexisting annotations to the images.
-         * If there is no annotations that have been previously written, a table must be created, but otherwise, 
-         * command will do nothing.
-         */
         private async void CreateTableIfNeeded()
         { 
             string CreateCommand = "CREATE TABLE IF NOT EXISTS annotations (AnnotationDescriptor varchar(10), ImagePath varchar(200)" +
@@ -127,9 +108,9 @@ namespace FishSenseLiteGUI.Data
 
             CloseConnection();
         }
+        
         private async void OpenConnection()
         {
-            // Will ensure all connection states will change into Open, not just when the connection is closed.
             if (DatabaseConnection.State != System.Data.ConnectionState.Open)
             {
                 await DatabaseConnection.OpenAsync();
@@ -137,7 +118,6 @@ namespace FishSenseLiteGUI.Data
         }
         private async void CloseConnection()
         {
-            // WIll ensure all connection states will change into Closed, not just when the connection is losed.
             if (DatabaseConnection.State != System.Data.ConnectionState.Closed)
             {
                 await DatabaseConnection.CloseAsync();
